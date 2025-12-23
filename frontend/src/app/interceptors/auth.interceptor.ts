@@ -9,14 +9,11 @@ export class AuthInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Добавляем токен авторизации к запросам к API
-    const accessToken = localStorage.getItem('accessToken');
-    
-    if (accessToken && req.url.startsWith('/api/v1')) {
+    // For API requests, include credentials (cookies) with each request
+    // httpOnly cookies will be automatically included by the browser
+    if (req.url.startsWith('/api/v1')) {
       req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        withCredentials: true  // This ensures cookies are sent with requests
       });
     }
 

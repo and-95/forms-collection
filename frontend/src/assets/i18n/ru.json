@@ -1,0 +1,193 @@
+{
+  "app": {
+    "title": "Корпоративный сервис анкетирования",
+    "welcome": "Добро пожаловать",
+    "logout": "Выйти",
+    "login": "Войти",
+    "register": "Регистрация",
+    "dashboard": "Панель управления",
+    "surveys": "Анкеты",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "adminPanel": "Панель администратора",
+    "userManagement": "Управление пользователями",
+    "theme": {
+      "light": "Светлая тема",
+      "dark": "Темная тема"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Вход в систему",
+      "username": "Имя пользователя",
+      "password": "Пароль",
+      "rememberMe": "Запомнить меня",
+      "forgotPassword": "Забыли пароль?",
+      "loginButton": "Войти",
+      "errors": {
+        "invalidCredentials": "Неверные учетные данные",
+        "required": "Обязательное поле",
+        "minLength": "Минимальная длина {min} символов"
+      }
+    },
+    "passwordChange": {
+      "title": "Смена пароля",
+      "currentPassword": "Текущий пароль",
+      "newPassword": "Новый пароль",
+      "confirmNewPassword": "Подтвердите новый пароль",
+      "changeButton": "Сменить пароль",
+      "requirements": "Требования к паролю: не менее 8 символов, заглавные и строчные буквы, цифры и спецсимволы (!@#$%^&*)",
+      "success": "Пароль успешно изменен",
+      "errors": {
+        "passwordMismatch": "Пароли не совпадают",
+        "invalidCurrentPassword": "Неверный текущий пароль",
+        "passwordRequirements": "Пароль не соответствует требованиям"
+      }
+    }
+  },
+  "survey": {
+    "list": {
+      "title": "Мои анкеты",
+      "createNew": "Создать анкету",
+      "searchPlaceholder": "Поиск анкет...",
+      "noSurveys": "Нет созданных анкет",
+      "status": {
+        "active": "Активна",
+        "inactive": "Неактивна",
+        "expired": "Просрочена"
+      },
+      "actions": {
+        "edit": "Редактировать",
+        "delete": "Удалить",
+        "activate": "Активировать",
+        "deactivate": "Деактивировать",
+        "duplicate": "Дублировать",
+        "responses": "Ответы",
+        "stats": "Статистика",
+        "qrCode": "QR-код",
+        "share": "Поделиться"
+      },
+      "columns": {
+        "title": "Название",
+        "status": "Статус",
+        "expiresAt": "Срок действия",
+        "responsesCount": "Ответов",
+        "createdAt": "Создана",
+        "actions": "Действия"
+      }
+    },
+    "builder": {
+      "title": {
+        "create": "Создание новой анкеты",
+        "edit": "Редактирование анкеты"
+      },
+      "form": {
+        "titleLabel": "Название анкеты",
+        "descriptionLabel": "Описание анкеты",
+        "expiresAtLabel": "Срок действия",
+        "expiresAtPlaceholder": "Выберите дату и время окончания",
+        "expiresAtHelp": "Оставьте пустым для бессрочной анкеты",
+        "isAnonymousLabel": "Анонимный опрос",
+        "isAnonymousHelp": "Не сохранять IP-адреса респондентов",
+        "saveButton": "Сохранить анкету",
+        "saveAndActivateButton": "Сохранить и активировать",
+        "previewButton": "Предпросмотр",
+        "cancelButton": "Отмена"
+      },
+      "questions": {
+        "title": "Вопросы анкеты",
+        "addQuestion": "Добавить вопрос",
+        "questionTypes": {
+          "text": "Текст (однострочный)",
+          "textarea": "Текст (многострочный)",
+          "radio": "Радиокнопки",
+          "select": "Выпадающий список",
+          "checkbox": "Флажки",
+          "email": "Email",
+          "phone": "Телефон",
+          "date": "Дата",
+          "datetime": "Дата и время",
+          "scale": "Шкала"
+        },
+        "questionEditor": {
+          "typeLabel": "Тип вопроса",
+          "labelLabel": "Текст вопроса",
+          "descriptionLabel": "Описание (необязательно)",
+          "requiredLabel": "Обязательный",
+          "optionsLabel": "Варианты ответа",
+          "addOption": "Добавить вариант",
+          "removeOption": "Удалить",
+          "minLabel": "Минимум",
+          "maxLabel": "Максимум",
+          "stepLabel": "Шаг",
+          "removeQuestion": "Удалить вопрос"
+        }
+      }
+    },
+    "renderer": {
+      "title": "Заполнение анкеты",
+      "submitButton": "Отправить ответы",
+      "thankYouMessage": "Спасибо за участие!",
+      "closedMessage": "Анкета закрыта",
+      "expiredMessage": "Срок действия анкеты истек",
+      "validation": {
+        "required": "Это поле обязательно для заполнения",
+        "email": "Пожалуйста, введите действительный email",
+        "phone": "Пожалуйста, введите действительный номер телефона",
+        "min": "Значение должно быть не менее {min}",
+        "max": "Значение должно быть не более {max}"
+      }
+    },
+    "responses": {
+      "title": "Ответы на анкету",
+      "export": "Экспортировать",
+      "searchPlaceholder": "Поиск по ответам...",
+      "dateRange": "Диапазон дат",
+      "from": "От",
+      "to": "До",
+      "columns": {
+        "responseId": "ID ответа",
+        "submittedAt": "Дата и время",
+        "ip": "IP-адрес",
+        "actions": "Действия"
+      },
+      "pagination": {
+        "itemsPerPage": "Записей на странице:",
+        "of": "из"
+      }
+    },
+    "stats": {
+      "title": "Статистика по анкете",
+      "option": "Вариант",
+      "count": "Количество",
+      "percentage": "Процент",
+      "chart": "График"
+    }
+  },
+  "common": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "view": "Просмотр",
+    "yes": "Да",
+    "no": "Нет",
+    "ok": "OK",
+    "close": "Закрыть",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно",
+    "warning": "Предупреждение",
+    "info": "Информация",
+    "confirm": "Подтвердить",
+    "search": "Поиск",
+    "clear": "Очистить",
+    "apply": "Применить",
+    "reset": "Сбросить",
+    "back": "Назад",
+    "next": "Далее",
+    "previous": "Предыдущий",
+    "first": "Первый",
+    "last": "Последний"
+  }
+}

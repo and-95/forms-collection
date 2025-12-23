@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Survey, SurveyResponse, SurveySubmission } from '../models/survey.model';
+import { Survey, SurveyResponse, SurveySubmission, User } from '../models/survey.model';
 
 @Injectable({
   providedIn: 'root'
@@ -62,12 +62,18 @@ export class SurveyService {
     return this.http.get(`${this.API_URL}/surveys/${surveyId}/stats`);
   }
 
-  // Метод для генерации QR-кода (в реальном приложении может быть на бэкенде)
+  // Метод для генерации QR-кода
   generateQRCode(text: string): Promise<string> {
     // Импортируем qrcode библиотеку динамически
     return import('qrcode').then((QRCode) => {
       return QRCode.toDataURL(text);
     });
+  }
+
+  // Метод для генерации QR-кода для публичной ссылки на анкету
+  generateSurveyQRCode(surveyId: string): Promise<string> {
+    const publicUrl = `${window.location.origin}/f/${surveyId}`;
+    return this.generateQRCode(publicUrl);
   }
 
   // Методы для управления пользователями (доступны только суперадминистратору)

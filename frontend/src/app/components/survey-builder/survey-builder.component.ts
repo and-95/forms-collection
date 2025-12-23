@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 import { SurveyService } from '../../services/survey.service';
 import { Survey, Question, QuestionType } from '../../models/survey.model';
+import { I18nService } from '../../services/i18n.service';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +14,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-survey-builder',
@@ -29,55 +33,63 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatCheckboxModule,
     MatIconModule,
     MatSlideToggleModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatTooltipModule,
     NgFor,
     NgIf
   ],
   template: `
     <div class="survey-builder-container">
       <div class="header">
-        <h1>{{ isEditMode ? 'Редактирование анкеты' : 'Создание новой анкеты' }}</h1>
+        <h1>{{ isEditMode ? i18n.t('survey.builder.title.edit') : i18n.t('survey.builder.title.create') }}</h1>
         <div class="header-actions">
-          <button mat-raised-button color="primary" (click)="saveSurvey()">Сохранить</button>
-          <button mat-button (click)="cancel()">Отмена</button>
+          <button mat-raised-button color="primary" (click)="saveSurvey()">{{ i18n.t('survey.builder.form.saveButton') }}</button>
+          <button mat-button (click)="cancel()">{{ i18n.t('common.cancel') }}</button>
         </div>
       </div>
       
       <div class="survey-info">
         <mat-form-field class="title-field">
-          <mat-label>Название анкеты</mat-label>
-          <input matInput formControlName="title" placeholder="Введите название анкеты">
+          <mat-label>{{ i18n.t('survey.builder.form.titleLabel') }}</mat-label>
+          <input matInput formControlName="title" placeholder="{{ i18n.t('survey.builder.form.titleLabel') }}">
+          <mat-error *ngIf="surveyForm.get('title')?.hasError('required')">{{ i18n.t('common.validation.required') }}</mat-error>
+          <mat-error *ngIf="surveyForm.get('title')?.hasError('minlength')">{{ i18n.t('common.validation.minLength', {min: 3}) }}</mat-error>
+          <mat-error *ngIf="surveyForm.get('title')?.hasError('maxlength')">{{ i18n.t('common.validation.maxLength', {max: 100}) }}</mat-error>
         </mat-form-field>
         
         <mat-form-field class="description-field">
-          <mat-label>Описание анкеты</mat-label>
+          <mat-label>{{ i18n.t('survey.builder.form.descriptionLabel') }}</mat-label>
           <textarea 
             matInput 
             formControlName="description" 
-            placeholder="Введите описание анкеты"></textarea>
+            placeholder="{{ i18n.t('survey.builder.form.descriptionLabel') }}"></textarea>
+          <mat-error *ngIf="surveyForm.get('description')?.hasError('maxlength')">{{ i18n.t('common.validation.maxLength', {max: 500}) }}</mat-error>
         </mat-form-field>
         
         <div class="survey-options">
           <mat-slide-toggle formControlName="isAnonymous">
-            Анонимная анкета
+            {{ i18n.t('survey.builder.form.isAnonymousLabel') }}
           </mat-slide-toggle>
           
           <mat-form-field class="expires-field">
-            <mat-label>Срок действия</mat-label>
+            <mat-label>{{ i18n.t('survey.builder.form.expiresAtLabel') }}</mat-label>
             <input 
               matInput 
               [matDatepicker]="picker" 
               formControlName="expiresAt"
-              placeholder="Выберите дату окончания">
+              placeholder="{{ i18n.t('survey.builder.form.expiresAtPlaceholder') }}">
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
+            <mat-hint>{{ i18n.t('survey.builder.form.expiresAtHelp') }}</mat-hint>
           </mat-form-field>
         </div>
       </div>
       
       <div class="questions-section">
         <div class="section-header">
-          <h2>Вопросы</h2>
-          <button mat-raised-button color="accent" (click)="addQuestion()">+ Добавить вопрос</button>
+          <h2>{{ i18n.t('survey.builder.questions.title') }}</h2>
+          <button mat-raised-button color="accent" (click)="addQuestion()">{{ i18n.t('survey.builder.questions.addQuestion') }}</button>
         </div>
         
         <div 
@@ -90,13 +102,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
             cdkDrag>
             <mat-card class="question-card">
               <mat-card-header>
-                <mat-card-title>Вопрос {{ i + 1 }}</mat-card-title>
+                <mat-card-title>{{ i18n.t('survey.renderer.question') }} {{ i + 1 }}</mat-card-title>
                 <mat-card-subtitle>{{ getQuestionTypeLabel(question.value.type) }}</mat-card-subtitle>
                 <button 
                   mat-icon-button 
                   class="drag-handle" 
                   cdkDragHandle
-                  matTooltip="Перетащите для изменения порядка">
+                  matTooltip="{{ i18n.t('common.drag.tooltip') }}">
                   <mat-icon>drag_handle</mat-icon>
                 </button>
               </mat-card-header>
@@ -104,42 +116,45 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
               <mat-card-content>
                 <div class="question-content">
                   <mat-form-field class="question-label-field">
-                    <mat-label>Текст вопроса</mat-label>
+                    <mat-label>{{ i18n.t('survey.builder.questionEditor.labelLabel') }}</mat-label>
                     <input 
                       matInput 
                       [formControl]="getControl(i, 'label')" 
-                      placeholder="Введите текст вопроса">
+                      placeholder="{{ i18n.t('survey.builder.questionEditor.labelLabel') }}">
+                    <mat-error *ngIf="getControl(i, 'label')?.hasError('required')">{{ i18n.t('common.validation.required') }}</mat-error>
+                    <mat-error *ngIf="getControl(i, 'label')?.hasError('minlength')">{{ i18n.t('common.validation.minLength', {min: 1}) }}</mat-error>
+                    <mat-error *ngIf="getControl(i, 'label')?.hasError('maxlength')">{{ i18n.t('common.validation.maxLength', {max: 255}) }}</mat-error>
                   </mat-form-field>
                   
                   <mat-form-field class="question-description-field">
-                    <mat-label>Описание (необязательно)</mat-label>
+                    <mat-label>{{ i18n.t('survey.builder.questionEditor.descriptionLabel') }}</mat-label>
                     <input 
                       matInput 
                       [formControl]="getControl(i, 'description')" 
-                      placeholder="Введите описание вопроса">
+                      placeholder="{{ i18n.t('survey.builder.questionEditor.descriptionLabel') }}">
                   </mat-form-field>
                   
                   <div class="question-options">
                     <mat-checkbox [formControl]="getControl(i, 'required')">
-                      Обязательный вопрос
+                      {{ i18n.t('survey.builder.questionEditor.requiredLabel') }}
                     </mat-checkbox>
                   </div>
                   
                   <mat-form-field class="question-type-field">
-                    <mat-label>Тип вопроса</mat-label>
+                    <mat-label>{{ i18n.t('survey.builder.questionEditor.typeLabel') }}</mat-label>
                     <mat-select 
                       [formControl]="getControl(i, 'type')" 
                       (selectionChange)="onQuestionTypeChange(i, $event.value)">
-                      <mat-option value="text">Текст (однострочный)</mat-option>
-                      <mat-option value="textarea">Текст (многострочный)</mat-option>
-                      <mat-option value="radio">Радиокнопки</mat-option>
-                      <mat-option value="select">Выпадающий список</mat-option>
-                      <mat-option value="checkbox">Чекбоксы</mat-option>
-                      <mat-option value="email">Email</mat-option>
-                      <mat-option value="phone">Телефон</mat-option>
-                      <mat-option value="date">Дата</mat-option>
-                      <mat-option value="datetime">Дата и время</mat-option>
-                      <mat-option value="scale">Шкала</mat-option>
+                      <mat-option value="text">{{ i18n.t('survey.builder.questions.questionTypes.text') }}</mat-option>
+                      <mat-option value="textarea">{{ i18n.t('survey.builder.questions.questionTypes.textarea') }}</mat-option>
+                      <mat-option value="radio">{{ i18n.t('survey.builder.questions.questionTypes.radio') }}</mat-option>
+                      <mat-option value="select">{{ i18n.t('survey.builder.questions.questionTypes.select') }}</mat-option>
+                      <mat-option value="checkbox">{{ i18n.t('survey.builder.questions.questionTypes.checkbox') }}</mat-option>
+                      <mat-option value="email">{{ i18n.t('survey.builder.questions.questionTypes.email') }}</mat-option>
+                      <mat-option value="phone">{{ i18n.t('survey.builder.questions.questionTypes.phone') }}</mat-option>
+                      <mat-option value="date">{{ i18n.t('survey.builder.questions.questionTypes.date') }}</mat-option>
+                      <mat-option value="datetime">{{ i18n.t('survey.builder.questions.questionTypes.datetime') }}</mat-option>
+                      <mat-option value="scale">{{ i18n.t('survey.builder.questions.questionTypes.scale') }}</mat-option>
                     </mat-select>
                   </mat-form-field>
                   
@@ -147,14 +162,16 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                   <div 
                     class="options-container" 
                     *ngIf="isChoiceQuestion(getControl(i, 'type').value)">
-                    <h4>Варианты ответов</h4>
+                    <h4>{{ i18n.t('survey.builder.questionEditor.optionsLabel') }}</h4>
                     <div 
                       class="option-item" 
                       *ngFor="let option of getOptionsArray(i).controls; let j = index; trackBy: trackByIndex"
                       [formGroup]="option">
                       <mat-form-field class="option-field">
-                        <mat-label>Вариант {{ j + 1 }}</mat-label>
-                        <input matInput formControlName="label" placeholder="Введите вариант ответа">
+                        <mat-label>{{ i18n.t('survey.renderer.option') }} {{ j + 1 }}</mat-label>
+                        <input matInput formControlName="label" placeholder="{{ i18n.t('survey.renderer.option') }} {{ j + 1 }}">
+                        <mat-error *ngIf="option.get('label')?.hasError('required')">{{ i18n.t('common.validation.required') }}</mat-error>
+                        <mat-error *ngIf="option.get('label')?.hasError('minlength')">{{ i18n.t('common.validation.minLength', {min: 1}) }}</mat-error>
                       </mat-form-field>
                       <button 
                         mat-icon-button 
@@ -167,7 +184,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                       mat-button 
                       color="primary" 
                       (click)="addOption(i)">
-                      + Добавить вариант
+                      {{ i18n.t('survey.builder.questionEditor.addOption') }}
                     </button>
                   </div>
                   
@@ -176,7 +193,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                     class="scale-options" 
                     *ngIf="getControl(i, 'type').value === 'scale'">
                     <mat-form-field class="scale-min-field">
-                      <mat-label>Минимальное значение</mat-label>
+                      <mat-label>{{ i18n.t('survey.builder.questionEditor.minLabel') }}</mat-label>
                       <input 
                         type="number" 
                         matInput 
@@ -185,7 +202,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                     </mat-form-field>
                     
                     <mat-form-field class="scale-max-field">
-                      <mat-label>Максимальное значение</mat-label>
+                      <mat-label>{{ i18n.t('survey.builder.questionEditor.maxLabel') }}</mat-label>
                       <input 
                         type="number" 
                         matInput 
@@ -194,7 +211,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                     </mat-form-field>
                     
                     <mat-form-field class="scale-step-field">
-                      <mat-label>Шаг</mat-label>
+                      <mat-label>{{ i18n.t('survey.builder.questionEditor.stepLabel') }}</mat-label>
                       <input 
                         type="number" 
                         matInput 
@@ -210,7 +227,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
                   mat-button 
                   color="warn" 
                   (click)="removeQuestion(i)">
-                  Удалить вопрос
+                  {{ i18n.t('survey.builder.questionEditor.removeQuestion') }}
                 </button>
               </mat-card-actions>
             </mat-card>
@@ -381,7 +398,8 @@ export class SurveyBuilderComponent implements OnInit {
     private fb: FormBuilder,
     private surveyService: SurveyService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public i18n: I18nService
   ) {
     this.surveyForm = this.createSurveyForm();
   }

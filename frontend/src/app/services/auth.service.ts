@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthResponse, User, ChangePasswordRequest } from '../models/survey.model';
 
 @Injectable({
@@ -8,77 +9,100 @@ import { AuthResponse, User, ChangePasswordRequest } from '../models/survey.mode
 })
 export class AuthService {
   private readonly API_URL = '/api/v1';
-  private readonly USER_KEY = 'currentUser';
-  private readonly ACCESS_TOKEN_KEY = 'accessToken';
   
   currentUser = signal<User | null>(null);
   isAuthenticated = signal(false);
 
   constructor(private http: HttpClient) {
-    this.loadUserFromStorage();
+    // Check if user is already authenticated by trying to get user info
+    this.checkAuthStatus();
   }
 
-  private loadUserFromStorage(): void {
-    const storedUser = localStorage.getItem(this.USER_KEY);
-    const accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY);
-    
-    if (storedUser && accessToken) {
-      this.currentUser.set(JSON.parse(storedUser));
-      this.isAuthenticated.set(true);
-    }
+  private checkAuthStatus(): void {
+    // Try to get current user to check if authenticated
+    this.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser.set(user);
+        this.isAuthenticated.set(true);
+      },
+      error: (error) => {
+        // User is not authenticated
+        this.currentUser.set(null);
+        this.isAuthenticated.set(false);
+      }
+    });
   }
 
   login(login: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, { login, password })
       .pipe(
         tap(response => {
-          this.setSession(response);
+          // After login, get user info to set current user
+          this.getCurrentUser().subscribe({
+            next: (user) => {
+              this.currentUser.set(user);
+              this.isAuthenticated.set(true);
+            },
+            error: (error) => {
+              console.error('Failed to load user info after login', error);
+            }
+          });
+        }),
+        catchError(error => {
+          console.error('Login error:', error);
+          return throwError(() => error);
         })
       );
   }
 
   logout(): void {
-    localStorage.removeItem(this.USER_KEY);
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    this.currentUser.set(null);
-    this.isAuthenticated.set(false);
-  }
-
-  changePassword(request: ChangePasswordRequest): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/change-password`, request);
-  }
-
-  refreshToken(): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/refresh`, {});
-  }
-
-  private setSession(authResponse: AuthResponse): void {
-    // В реальном приложении токены будут в httpOnly cookie
-    // Для демонстрации сохраняем в localStorage
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, authResponse.accessToken);
-    // refreshToken обычно хранится в httpOnly cookie, но в демонстрации может быть в localStorage
-    
-    // После успешного входа получаем информацию о пользователе
-    this.loadCurrentUser().subscribe({
-      next: (user) => {
-        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-        this.currentUser.set(user);
-        this.isAuthenticated.set(true);
+    // Call logout endpoint to clear server-side session/cookie
+    this.http.post(`${this.API_URL}/auth/logout`, {}).subscribe({
+      next: () => {
+        // Clear local state
+        this.currentUser.set(null);
+        this.isAuthenticated.set(false);
       },
       error: (error) => {
-        console.error('Failed to load user info', error);
+        // Even if logout request fails, clear local state
+        this.currentUser.set(null);
+        this.isAuthenticated.set(false);
+        console.error('Logout error:', error);
       }
     });
   }
 
-  private loadCurrentUser(): Observable<User> {
-    // В реальном приложении этот эндпоинт будет возвращать информацию о текущем пользователе
-    // на основе токена в заголовке Authorization
-    return this.http.get<User>(`${this.API_URL}/auth/me`);
+  changePassword(request: ChangePasswordRequest): Observable<any> {
+    return this.http.post(`${this.API_URL}/auth/change-password`, request)
+      .pipe(
+        catchError(error => {
+          console.error('Change password error:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  refreshToken(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/auth/refresh`, {})
+      .pipe(
+        catchError(error => {
+          console.error('Refresh token error:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   getCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.API_URL}/auth/me`);
+    return this.http.get<User>(`${this.API_URL}/auth/me`)
+      .pipe(
+        catchError(error => {
+          // Don't log this as error if it's a 401 (unauthorized)
+          if (error.status !== 401) {
+            console.error('Get current user error:', error);
+          }
+          return throwError(() => error);
+        })
+      );
   }
 
   hasRole(requiredRole: 'admin' | 'superadmin'): boolean {

@@ -1,7 +1,10 @@
 ```
 # Dependencies
 node_modules/
+<<<<<<< HEAD
 .angular
+=======
+>>>>>>> 99576d6b24f8cef212d8643d6420aa9faaf116e3
 
 # Editor/IDE files
 .vscode/
@@ -60,4 +63,8 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> 99576d6b24f8cef212d8643d6420aa9faaf116e3

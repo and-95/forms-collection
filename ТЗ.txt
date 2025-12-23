@@ -1,0 +1,442 @@
+ТЕХНИЧЕСКОЕ ЗАДАНИЕ: КОРПОРАТИВНЫЙ СЕРВИС АНКЕТИРОВАНИЯ (MVP)
+
+
+1. ЦЕЛЬ И ЗАДАЧИ
+Создать корпоративный SaaS-сервис для быстрого создания, распространения (через QR/ссылку) и сбора ответов по анкетам.  
+MVP-цель: Закрыть базовый цикл: админ создаёт → пользователь заполняет → админ видит ответы.
+
+2. РОЛИ ПОЛЬЗОВАТЕЛЕЙ
+Роль — Возможности
+Гость — Сканирует QR → проходит анкету → видит «Спасибо!»
+Администратор — Авторизация, создание/редактирование/удаление своих анкет, просмотр ответов, простая статистика, смена пароля
+Суперадминистратор — Всё, что у администратора + управление аккаунтами админов (CRUD), просмотр всех анкет и ответов
+
+3. ФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ
+
+3.1. Аутентификация и аккаунты
+- Регистрация отключена. Учётные записи создаются только суперадмином.
+- Суперадмин задаёт логин и временный пароль при создании админа.
+- При первом входе админ обязан сменить пароль.
+- Требования к паролю: ≥8 символов, [A-Z], [a-z], [0-9], ≥1 спецсимвол (!@#$%^&*).
+- JWT: access (15 мин) + refresh (7 дней) в httpOnly cookie.
+
+3.2. Конструктор анкет
+- Поддержка типов вопросов:  
+  - Текст (однострочный / многострочный)  
+  - Радиокнопки / Селект (один выбор)  
+  - Чекбоксы (множественный выбор)  
+  - Email / Телефон (с валидацией)  
+  - Дата / Дата+Время  
+  - Шкала (1–5, 1–10, кастомный диапазон)  
+- Обязательность поля (toggle на вопросе).  
+- Перетаскивание вопросов (cdkDragDrop).  
+- Локализация: заголовок/описание/варианты — на русском (заглушки для i18n в модели).  
+- Предпросмотр анкеты (modal или отдельная вкладка).  
+- Срок действия: дата+время ИЛИ флаг «Бессрочно» (в БД: expires_at NULL = вечная).  
+- Флаг «Анонимный опрос» → не сохранять IP в responses.
+
+3.3. Публикация и распределение
+- При сохранении/активации анкеты генерируются:  
+  - Уникальная короткая ссылка (/f/{SURVEY_ID} или /f/{UUIDv7})  
+  - QR-код (рендерится на фронтенде через qrcode библиотеку, сохраняется как base64 в БД для повторного отображения)  
+- QR сохраняется как VARCHAR (base64 PNG) в таблице surveys.qr_code.  
+- Длина ссылки — не более 100 символов (UUIDv7 или короткий ID).
+
+3.4. Прохождение анкеты (гость)
+- Одностраничная форма.  
+- Валидация на фронтенде и бэкенде.  
+- Отправка → сохранение в responses.data (JSONB), логирование IP (если не анонимно).  
+- После отправки — страница «Спасибо за участие!».  
+- Если анкета неактивна/просрочена — страница «Анкета закрыта».
+
+3.5. Личный кабинет администратора
+- Список анкет (карточки): название, статус (активна/неактивна), срок, кол-во ответов.  
+- Действия:  
+  - Редактировать  
+  - Активировать/Деактивировать  
+  - Продлить срок  
+  - Посмотреть ответы  
+  - Сгенерировать/перегенерировать QR  
+- Страница «Ответы по анкете»:  
+  - Таблица: строка = ответ, столбцы = вопросы (значения из responses.data)  
+  - Пагинация (20/50/100)  
+  - Поиск по тексту  
+  - Фильтр по дате (submitted_at)  
+- Простая статистика (только для закрытых типов):  
+  - Таблица: «Вариант — Кол-во — %»  
+  - Отображается отдельной вкладкой/панелью  
+- Настройки профиля: смена пароля.
+
+3.6. Аудит и безопасность
+- Логирование в audit_log:  
+  - CREATE/UPDATE/DELETE SURVEY  
+  - ACTIVATE/DEACTIVATE SURVEY  
+  - CREATE USER (суперадмин)  
+- Валидация всех входных данных (express-validator / Zod на бэкенде).  
+- Rate-limiting для публичных /submit эндпоинтов (10 запросов/мин/IP).
+
+4. НЕФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ
+- Технологии:  
+  - Frontend: Angular 20 (Standalone), Angular Material 19, Signals, qrcode  
+  - Backend: Node.js 22, Express, jsonwebtoken, zod, pg  
+  - БД: PostgreSQL 17 (JSONB, expression indexes)  
+- Производительность:  
+  - Загрузка анкеты < 1s (при 10 вопросах)  
+  - Сохранение ответа < 300ms  
+- Безопасность:  
+  - HTTPS (обязательно)  
+  - CSP (Content Security Policy)  
+  - Sanitization ответов перед рендером в админке  
+- Масштабируемость:  
+  - Модель данных — расширяемая (через JSONB и отдельные таблицы позже)  
+  - Архитектура — REST API, готовая к GraphQL/microservices в будущем
+
+5. МОДЕЛЬ ДАННЫХ (УПРОЩЁННАЯ)
+-- Пользователи
+users (
+  id UUID PK,
+  login VARCHAR(64) UNIQUE,
+  password_hash VARCHAR(128),
+  role ENUM('admin', 'superadmin'),
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+)
+
+-- Анкеты
+surveys (
+  id UUID PK,
+  title TEXT,
+  description TEXT,
+  structure JSONB NOT NULL,  -- [{id, type, label, required, options?, min?, max?}]
+  expires_at TIMESTAMPTZ,     -- NULL = forever
+  is_active BOOLEAN,
+  is_anonymous BOOLEAN,
+  qr_code TEXT,               -- base64
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+)
+
+-- Ответы
+responses (
+  id UUID PK,
+  survey_id UUID REFERENCES surveys(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,        -- {q1: "text", q2: ["opt1", "opt2"], ...}
+  ip INET,                    -- NULL if is_anonymous
+  submitted_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+-- Аудит
+audit_log (
+  id BIGSERIAL PK,
+  user_id UUID REFERENCES users(id),
+  action VARCHAR(32),         -- 'CREATE_SURVEY', 'UPDATE_USER', etc.
+  target_type VARCHAR(16),    -- 'survey', 'user'
+  target_id UUID,
+  details JSONB,              -- {old_value?, new_value?}
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+6. API (ОСНОВНЫЕ ЭНДПОИНТЫ)
+Метод — Путь — Описание — Роль
+POST — /auth/login — Получить JWT — —
+POST — /auth/refresh — Обновить токен — —
+POST — /auth/change-password — Сменить пароль — admin, superadmin
+POST — /surveys — Создать анкету — admin, superadmin
+GET — /surveys — Список своих анкет — admin, superadmin
+GET — /surveys/:id — Получить анкету — admin (свою), superadmin (любую)
+PATCH — /surveys/:id — Обновить анкету — admin (свою), superadmin (любую)
+POST — /surveys/:id/submit — Отправить ответ — — (публичный)
+GET — /surveys/:id/responses — Ответы по анкете — admin (свою), superadmin (любую)
+GET — /surveys/:id/stats — Статистика по анкете — admin (свою), superadmin (любую)
+POST — /admin/users — Создать админа — superadmin
+GET — /admin/users — Список админов — superadmin
+
+
+
+
+
+
+--------------------------------------------------------
+
+```bash
+Отлично! Ниже — максимально конкретное ТЗ для разработчиков, включая:  
+✅ структуру проекта (Angular + Node.js)  
+✅ архитектуру компонентов и сервисов  
+✅ схемы JSON для анкет и ответов  
+✅ примеры API-запросов и ответов  
+✅ требования к валидации и безопасности  
+✅ рекомендации по библиотекам
+
+
+II. Модель данных — детализация
+
+surveys.structure — JSON-схема вопроса
+// shared/models/survey.model.ts
+export type QuestionType =
+  | 'text'
+  | 'textarea'
+  | 'radio'
+  | 'select'
+  | 'checkbox'
+  | 'email'
+  | 'phone'
+  | 'date'
+  | 'datetime'
+  | 'scale';
+
+export interface Question {
+  id: string; // UUIDv4 или nanoid()
+  type: QuestionType;
+  label: string;       // "Ваше имя?"
+  description?: string; // "Пожалуйста, укажите полностью"
+  required: boolean;
+  // Опционально, по типу:
+  options?: { id: string; label: string }[]; // для radio/select/checkbox
+  min?: number;   // для scale
+  max?: number;   // для scale (default 5)
+  step?: number;  // для scale (default 1)
+}
+
+Пример структуры анкеты:
+[
+  {
+    "id": "q1",
+    "type": "text",
+    "label": "ФИО",
+    "required": true
+  },
+  {
+    "id": "q2",
+    "type": "scale",
+    "label": "Оцените сервис от 1 до 10",
+    "required": true,
+    "min": 1,
+    "max": 10
+  },
+  {
+    "id": "q3",
+    "type": "checkbox",
+    "label": "Что вам понравилось?",
+    "required": false,
+    "options": [
+      { "id": "opt1", "label": "Интерфейс" },
+      { "id": "opt2", "label": "Скорость" }
+    ]
+  }
+]
+
+responses.data — JSON-схема ответа
+{
+  "q1": "Иванов Иван",
+  "q2": 9,
+  "q3": ["opt1", "opt2"]
+}
+- Для text/textarea/email/phone/date/datetime → строка  
+- Для radio/select → строка (id выбранного варианта)  
+- Для checkbox → массив строк (id выбранных)  
+- Для scale → число
+
+Важно: на бэкенде — строгая валидация через Zod-схему, построенной динамически из survey.structure.
+
+III. Backend — реализация (Node.js 22 + Express + PostgreSQL 17)
+
+Аутентификация (JWT)
+- Access token: HS256, 15 мин, payload: { sub: userId, role }  
+- Refresh token: HS512, 7 дней, хранится в HttpOnly + Secure cookie refreshToken  
+- Middleware authGuard:  
+  // middlewares/auth.ts
+  export const authGuard = (req, res, next) => {
+    const token = req.cookies.accessToken;
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET!);
+      req.user = payload; // { sub, role }
+      next();
+    } catch { ... }
+  };
+- Middleware roleGuard(allowedRoles: Role[]) — проверка req.user.role.
+
+Валидация (Zod)
+// utils/schemas/survey.schema.ts
+import { z } from 'zod';
+
+const questionSchema = z.object({
+  id: z.string().uuid(),
+  type: z.enum(['text','textarea','radio','select','checkbox','email','phone','date','datetime','scale']),
+  label: z.string().min(1).max(255),
+  description: z.string().optional(),
+  required: z.boolean(),
+  options: z.array(z.object({ id: z.string(), label: z.string() })).optional(),
+  min: z.number().int().gte(1).optional(),
+  max: z.number().int().lte(100).optional(),
+  step: z.number().int().gte(1).optional(),
+});
+
+export const createSurveySchema = z.object({
+  title: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  structure: z.array(questionSchema).min(1).max(100),
+  expiresAt: z.string().datetime().optional(), // null = forever
+  isAnonymous: z.boolean(),
+});
+
+API — примеры запросов
+
+POST /api/v1/surveys
+Запрос (админ):
+{
+  "title": "NPS Q4 2025",
+  "structure": [ ... ], // как выше
+  "expiresAt": "2026-01-01T00:00:00Z",
+  "isAnonymous": true
+}
+Ответ 201:
+{
+  "id": "a1b2c3d4-...",
+  "title": "NPS Q4 2025",
+  "publicUrl": "/f/a1b2c3d4",
+  "qrCode": "image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAA...",
+  "expiresAt": "2026-01-01T00:00:00Z",
+  "isActive": true
+}
+
+POST /api/v1/surveys/:id/submit (публичный)
+Запрос:
+{
+  "q1": "test@example.com",
+  "q2": 5,
+  "q3": ["opt1"]
+}
+Валидация:  
+- Проверить survey.isActive && (!survey.expiresAt || now < expiresAt)  
+- Проверить соответствие data → survey.structure (Zod)  
+- Если !isAnonymous → сохранить req.ip (IPv4/IPv6)
+
+Ответ 201: { "message": "Спасибо за участие!" }
+
+IV. Frontend — реализация (Angular 20)
+
+UI-библиотеки (минимум, только критичные)
+Назначение | Библиотека | Альтернатива
+Material UI | @angular/material, @angular/cdk | —
+QR-код | qrcode (https://www.npmjs.com/package/qrcode) | —
+Валидация форм | Встроенные Validators + кастомные | —
+HTTP | HttpClient + interceptor для JWT | —
+Состояние | Signals (signal, computed, effect) | NgRx (избыточно для MVP)
+
+Survey Builder (Drag & Drop)
+- Использовать @angular/cdk/drag-drop  
+- Модель формы:  
+  // survey-builder.component.ts
+  questions = signal<Question[]>([]);
+  form = signal<FormGroup>(this.fb.group({})); // для предпросмотра
+- Шаблон:
+  <div cdkDropList (cdkDropListDropped)="drop($event)">
+    <div *ngFor="let q of questions(); trackBy: trackById" cdkDrag>
+      <app-question-editor [question]="q" />
+      <div cdkDragHandle class="drag-handle">☰</div>
+    </div>
+  </div>
+- При drop() → обновляем questions.set(reorderedArray) и сохраняем порядок в structure.
+
+Survey Renderer (публичная анкета)
+- Компонент SurveyRendererComponent принимает structure: Question[]  
+- Генерирует FormGroup динамически:
+  buildForm(structure: Question[]): FormGroup {
+    const controls = {};
+    for (const q of structure) {
+      const validators = q.required ? [Validators.required] : [];
+      switch (q.type) {
+        case 'email': validators.push(Validators.email); break;
+        case 'phone': validators.push(phoneValidator()); break;
+        // ...
+      }
+      controls[q.id] = this.fb.control('', validators);
+    }
+    return this.fb.group(controls);
+  }
+
+Тема (Light/Dark)
+- Angular Material theme + inject(ThemeService).toggle()  
+- Хранить в localStorage['theme']  
+- Использовать color="primary" и т.д. — Material сам подстроит под theme: 'dark'.
+
+V. Требования к разработке
+
+Backend
+- ✅ TypeScript Strict Mode (strict: true в tsconfig.json)  
+- ✅ Весь SQL — параметризованный (pg), никакого конкатенирования  
+- ✅ Все эндпоинты — валидация через Zod до контроллера  
+- ✅ Rate-limit на /submit: express-rate-limit (10/min/IP)  
+- ✅ Логгирование: pino + pino-pretty (dev), pino/file (prod)
+
+Frontend
+- ✅ Standalone components (нет NgModule)  
+- ✅ Signals для всего, кроме реактивных форм (оставить FormGroup)  
+- ✅ takeUntilDestroyed() в эффектах  
+- ✅ Интернационализация: файл src/assets/i18n/ru.json с ключами вида "survey.title": "Заголовок анкеты" (даже если один язык — для расширяемости)  
+- ✅ Тесты: не требуются, но если писать — использовать Jasmine/TestBed для компонентов
+
+VI. PostgreSQL 17 — тонкие настройки
+
+Индексы
+-- Быстрый поиск своих анкет
+CREATE INDEX idx_surveys_created_by ON surveys(created_by);
+
+-- Быстрый поиск активных анкет по дате (для проверки при submit)
+CREATE INDEX idx_surveys_active_expires ON surveys(is_active, expires_at)
+WHERE is_active = true;
+
+-- Аналитика: поиск ответов по конкретному вопросу (например, q2 = "opt1")
+CREATE INDEX idx_responses_data_q2 ON responses USING GIN ((data -> 'q2'));
+-- Или для scale: 
+CREATE INDEX idx_responses_data_q3_int ON responses (((data ->> 'q3')::int));
+
+JSONB — best practices
+- Хранить структуру и ответы в JSONB — это оптимально для гибкости  
+- Использовать JSON_TABLE() (PostgreSQL 17) для сложной аналитики в будущем  
+- Не хранить в JSONB то, что часто фильтруется по всем анкетам (например, created_by, is_active — отдельные колонки)
+
+VII. Библиотеки (строго по необходимости)
+
+Backend (package.json)
+Пакет | Версия | Зачем
+express | ^4.21.1 | Сервер
+pg | ^8.13.0 | PostgreSQL клиент
+jsonwebtoken | ^9.0.2 | JWT
+zod | ^3.23.8 | Валидация
+bcryptjs | ^2.4.3 | Хэширование паролей
+qrcode | ^1.5.4 | Генерация QR (на бэкенде — fallback)
+express-rate-limit | ^7.4.1 | Защита от спама
+pino | ^9.4.1 | Логгирование
+dotenv | ^16.4.5 | Переменные окружения
+
+Frontend (package.json)
+Пакет | Версия | Зачем
+@angular/material | ^19.0.0 | UI-компоненты
+@angular/cdk | ^19.0.0 | Drag & Drop, overlays
+qrcode | ^1.5.4 | Генерация QR на клиенте (браузер)
+
+Запрещено подключать:
+- lodash (есть Array.prototype методы)  
+- moment.js (использовать Date или date-fns)  
+- rxjs/operators кроме map, catchError, switchMap
+
+VIII. Готово.
+
+Это — рабочее ТЗ для команды разработки. Оно:
+- Даёт однозначные инструкции по архитектуре  
+- Устраняет неоднозначности (форматы JSON, валидация, индексы)  
+- Следует лучшим практикам 2025 года  
+- Минимизирует риски «а как это сделать?»
+
+Что дальше? Могу подготовить:
+1. Swagger/OpenAPI спецификацию (openapi.yaml)  
+2. Figma-макеты (wireframe) ключевых экранов (конструктор, таблица ответов)  
+3. Чек-лист для ревью кода (backend + frontend)  
+4. Docker-compose.yml для локального запуска (PostgreSQL 17 + Node + Angular)
+
+Какой пункт нужен в первую очередь?
+```
+

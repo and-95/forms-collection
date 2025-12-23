@@ -1,0 +1,101 @@
+// src/controllers/auth.controller.ts
+
+import { Request, Response } from 'express';
+import { findUserById, findUserByLogin, updateUserPassword } from '../models/user.model';
+import { hashPassword, verifyPassword, validatePassword } from '../services/password.service';
+import { signAccessToken, signRefreshToken } from '../utils/jwt.utils';
+import { JWTPayload } from '../types';
+
+// src/controllers/auth.controller.ts
+
+export const login = async (req: Request, res: Response) => {
+  const { login, password } = req.body;
+
+  if (!login || !password) {
+    return res.status(400).json({ error: 'Login and password are required' });
+  }
+
+  const user = await findUserByLogin(login);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  const isValid = await verifyPassword(password, user.password_hash);
+  if (!isValid) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  // ✅ Здесь НЕЛЬЗЯ использовать req.user — его ещё нет!
+  const payload: JWTPayload = { sub: user.id, role: user.role }; // ← user.id, НЕ req.user.sub!
+
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000,
+  });
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return res.status(200).json({
+    mustChangePassword: user.must_change_password,
+    user: {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+    },
+  });
+};
+
+export const refresh = (req: Request, res: Response) => {
+  // req.user уже заполнен в refreshGuard
+  const payload: JWTPayload = { sub: req.user!.sub, role: req.user!.role };
+
+  const accessToken = signAccessToken(payload);
+
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000,
+  });
+
+  return res.status(200).json({ message: 'Token refreshed' });
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user!.sub;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current and new passwords are required' });
+  }
+
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({
+      error: 'Password must be ≥8 chars, contain A-Z, a-z, 0-9, and !@#$%^&*',
+    });
+  }
+
+  const user = await findUserByLogin(req.user!.sub); // можно и по ID — для MVP ок
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const isValid = await verifyPassword(currentPassword, user.password_hash);
+  if (!isValid) {
+    return res.status(401).json({ error: 'Current password is incorrect' });
+  }
+
+  const newHash = await hashPassword(newPassword);
+  await updateUserPassword(userId, newHash, false); // сброс флага
+
+  return res.status(200).json({ message: 'Password changed successfully' });
+};

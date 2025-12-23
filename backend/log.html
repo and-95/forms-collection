@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Вход в систему</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding-top: 100px; }
+    .card { width: 350px; padding: 24px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1565c0; }
+    .error { color: #d32f2f; margin-top: 8px; }
+    .success { color: #388e3c; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Вход</h2>
+    <input type="text" id="login" placeholder="Логин" value="superadmin" />
+    <input type="password" id="password" placeholder="Пароль" value="TempPass1!" />
+    <button onclick="login()">Войти</button>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    async function login() {
+      const login = document.getElementById('login').value;
+      const password = document.getElementById('password').value;
+      const messageEl = document.getElementById('message');
+
+      try {
+        const res = await fetch('http://localhost:3000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // ← обязательно для httpOnly cookie!
+          body: JSON.stringify({ login, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          messageEl.innerHTML = `<div class="success">✅ Успешно! mustChangePassword: ${data.mustChangePassword}</div>`;
+          console.log('Ответ:', data);
+        } else {
+          messageEl.innerHTML = `<div class="error">❌ ${data.error || 'Ошибка'}</div>`;
+        }
+      } catch (err) {
+        messageEl.innerHTML = `<div class="error">⚠️ Ошибка сети: ${err.message}</div>`;
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

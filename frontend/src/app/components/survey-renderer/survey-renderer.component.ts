@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { SurveyService } from '../../services/survey.service';
 import { Survey, Question, QuestionType, SurveySubmission } from '../../models/survey.model';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,6 +13,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
   selector: 'app-survey-renderer',
@@ -29,8 +30,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatRadioModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    NgFor,
-    NgIf
+    MatSliderModule
   ],
   template: `
     <div class="survey-container" *ngIf="!isSubmitted; else thankYouTemplate">
@@ -311,7 +311,7 @@ export class SurveyRendererComponent implements OnInit {
   }
 
   private buildForm(questions: Question[]): void {
-    const group = {};
+    const group: { [key: string]: any } = {};
     
     questions.forEach(question => {
       let validators = [];

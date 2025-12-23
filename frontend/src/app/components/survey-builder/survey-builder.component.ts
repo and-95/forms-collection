@@ -5,7 +5,7 @@ import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-
 import { SurveyService } from '../../services/survey.service';
 import { Survey, Question, QuestionType } from '../../models/survey.model';
 import { I18nService } from '../../services/i18n.service';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,9 +35,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatSlideToggleModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatTooltipModule,
-    NgFor,
-    NgIf
+    MatTooltipModule
   ],
   template: `
     <div class="survey-builder-container">
@@ -573,9 +571,7 @@ export class SurveyBuilderComponent implements OnInit {
         structure: this.convertFormToStructure(formData.questions),
         expiresAt: formData.expiresAt || null,
         isAnonymous: formData.isAnonymous,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isActive: true
       };
 
       if (this.isEditMode && this.surveyId) {

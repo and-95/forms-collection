@@ -2,18 +2,13 @@
 # Dependencies
 node_modules/
 
-# Build artifacts
-dist/
-build/
-target/
-
-# Logs
-*.log
-
 # Environment
 .env
 .env.local
 *.env.*
+
+# Logs
+*.log
 
 # Editor/IDE
 .vscode/
@@ -22,27 +17,27 @@ target/
 *.swo
 *.tmp
 
-# Python (if present)
+# Build artifacts
+dist/
+build/
+target/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-env/
 venv/
 .venv/
-.python-version
+.env/
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# OS
+# System
 .DS_Store
 Thumbs.db
-
-# Testing
-.nyc_output/
-coverage.lcov
 ```

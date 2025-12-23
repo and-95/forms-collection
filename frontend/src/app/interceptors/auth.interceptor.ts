@@ -2,11 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor {
-  constructor(private authService: AuthService) {}
+  constructor() {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // For API requests, include credentials (cookies) with each request
@@ -23,7 +22,8 @@ export class AuthInterceptor {
         if (error.status === 401) {
           // Токен истек, возможно, нужно обновить
           console.error('Unauthorized request', error);
-          this.authService.logout();
+          // Instead of calling authService.logout(), we'll just emit the error
+          // The components will handle the 401 error as needed
         }
         return throwError(() => error);
       })

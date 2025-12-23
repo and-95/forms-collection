@@ -6,6 +6,7 @@ import { loggingMiddleware } from './middleware/logging.middleware';
 import authRoutes from './routes/auth.routes';
 import surveyRoutes from './routes/survey.routes';
 import adminRoutes from './routes/admin.routes';
+import { initializeSuperAdmin } from './initializeSuperAdmin';
 
 const app = express();
 
@@ -59,8 +60,20 @@ app.get('/.well-known/health', async (req: Request, res: Response) => {
   }
 });
 
+// Initialize superadmin user on startup
+const initializeApp = async () => {
+  try {
+    await initializeSuperAdmin();
+    console.log('✅ Application initialization completed');
+  } catch (error) {
+    console.error('❌ Application initialization failed:', error);
+    process.exit(1);
+  }
+};
+
 // Start server
 const PORT = parseInt(process.env.PORT || '3000', 10);
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ Server running on http://localhost:${PORT} | env: ${process.env.NODE_ENV || 'development'}`);
+  await initializeApp();
 });

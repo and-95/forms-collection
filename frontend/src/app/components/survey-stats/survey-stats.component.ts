@@ -360,8 +360,8 @@ export class SurveyStatsComponent implements OnInit {
 
   private loadResponses(id: string): void {
     this.surveyService.getSurveyResponses(id).subscribe({
-      next: (responses) => {
-        this.responses = responses;
+      next: (response) => {
+        this.responses = response.data;
         if (this.survey) {
           this.calculateStats();
         }

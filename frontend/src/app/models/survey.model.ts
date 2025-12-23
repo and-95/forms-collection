@@ -36,6 +36,7 @@ export interface Survey {
   createdBy?: string;
   createdAt: string;
   updatedAt: string;
+  responseCount?: number;
 }
 
 export interface SurveyResponse {

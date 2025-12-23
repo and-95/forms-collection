@@ -235,7 +235,7 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private surveyService: SurveyService,
-    private authService: AuthService,
+    public authService: AuthService,
     private dialog: MatDialog
   ) {
     this.userForm = this.createForm();
@@ -313,11 +313,9 @@ export class UserManagementComponent implements OnInit {
     if (this.userForm.valid) {
       const userData = this.userForm.value;
       
-      const userToCreate: Omit<User, 'id' | 'createdAt' | 'updatedAt'> = {
+      const userToCreate: Omit<User, 'id'> = {
         login: userData.login,
-        role: userData.role,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        role: userData.role
       };
       
       this.surveyService.createUser(userToCreate).subscribe({

@@ -9,9 +9,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { SurveyService } from '../../services/survey.service';
 import { Survey, Question } from '../../models/survey.model';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-survey-responses',
@@ -27,8 +29,8 @@ import { CommonModule, NgFor, NgIf } from '@angular/common';
     MatIconModule,
     MatPaginatorModule,
     MatSortModule,
-    NgFor,
-    NgIf
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   template: `
     <div class="responses-container">

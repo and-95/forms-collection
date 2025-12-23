@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NgFor, NgIf } from '@angular/router';
+import { Router } from '@angular/router';
 import { SurveyService } from '../../services/survey.service';
 import { AuthService } from '../../services/auth.service';
 import { Survey } from '../../models/survey.model';
@@ -15,9 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
     CommonModule,
     MatButtonModule,
     MatCardModule,
-    MatIconModule,
-    NgFor,
-    NgIf
+    MatIconModule
   ],
   template: `
     <div class="survey-list-container">

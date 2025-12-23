@@ -9,7 +9,13 @@ import {
   deleteSurvey,
   toggleSurveyActive
 } from '../models/survey.model';
-import { createResponse } from '../models/response.model';
+import { 
+  createResponse,
+  getResponseCountBySurveyId,
+  getResponsesBySurveyId,
+  getSurveyStats,
+  getDetailedStatsBySurveyId
+} from '../models/response.model';
 import { generateQRCode } from '../services/qr.service';
 import { validateSurveyResponse } from '../utils/validation/survey.validation';
 import { Survey } from '../types/survey.types';
@@ -68,16 +74,24 @@ export const getSurveys = async (req: Request, res: Response) => {
     const userId = req.user!.sub;
     const surveys = await getSurveysByUser(userId);
     
-    res.status(200).json(surveys.map(survey => ({
-      id: survey.id,
-      title: survey.title,
-      description: survey.description,
-      isActive: survey.is_active,
-      expiresAt: survey.expires_at,
-      createdAt: survey.created_at,
-      updatedAt: survey.updated_at,
-      responseCount: 0 // будет реализовано позже через отдельный запрос
-    })));
+    // Получаем количество ответов для каждой анкеты
+    const surveysWithResponseCount = await Promise.all(
+      surveys.map(async (survey) => {
+        const responseCount = await getResponseCountBySurveyId(survey.id);
+        return {
+          id: survey.id,
+          title: survey.title,
+          description: survey.description,
+          isActive: survey.is_active,
+          expiresAt: survey.expires_at,
+          createdAt: survey.created_at,
+          updatedAt: survey.updated_at,
+          responseCount
+        };
+      })
+    );
+    
+    res.status(200).json(surveysWithResponseCount);
   } catch (error) {
     console.error('Error getting surveys:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -317,10 +331,24 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Заглушка - в реальности нужно реализовать получение ответов из модели
+    // Получаем параметры пагинации
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+    
+    // Получаем ответы из базы данных
+    const responses = await getResponsesBySurveyId(id, limit, offset);
+    const totalCount = await getResponseCountBySurveyId(id);
+    
     res.status(200).json({
       surveyId: id,
-      responses: []
+      responses,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit)
+      }
     });
   } catch (error) {
     console.error('Error getting survey responses:', error);
@@ -344,10 +372,16 @@ export const getSurveyStats = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Заглушка - в реальности нужно реализовать получение статистики из модели
+    // Получаем статистику из базы данных
+    const stats = await getSurveyStats(id);
+    
+    // Дополнительно можем получить статистику по каждому вопросу
+    const detailedStats = await getDetailedStatsBySurveyId(id, survey.structure);
+    
     res.status(200).json({
       surveyId: id,
-      stats: {}
+      basicStats: stats,
+      detailedStats
     });
   } catch (error) {
     console.error('Error getting survey stats:', error);

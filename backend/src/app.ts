@@ -3,6 +3,9 @@
 import express, { Request, Response } from 'express';
 import pool from './utils/db';
 import { loggingMiddleware } from './middleware/logging.middleware';
+import authRoutes from './routes/auth.routes';
+import surveyRoutes from './routes/survey.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
@@ -14,7 +17,9 @@ app.use((req, res, next) => {
   // Разрешаем только наш фронтенд
   const allowedOrigins = [
     'http://127.0.0.1:5500',
-    'http://localhost:5500'
+    'http://localhost:5500',
+    'http://localhost:4200',  // Angular dev server
+    'http://localhost:3000'   // для локального тестирования
   ];
   
   const origin = req.headers.origin;
@@ -28,11 +33,16 @@ app.use((req, res, next) => {
 
   // Обрабатываем preflight
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // или 204
+    return res.sendStatus(200);
   }
 
   next();
 });
+
+// Routes
+app.use('/auth', authRoutes);
+app.use('/api/v1/surveys', surveyRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Health check (для readiness/liveness probe)
 app.get('/.well-known/health', async (req: Request, res: Response) => {
@@ -54,10 +64,3 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT} | env: ${process.env.NODE_ENV || 'development'}`);
 });
-
-// src/app.ts (дополнение)
-
-import authRoutes from './routes/auth.routes';
-
-// После app.use(express.json())
-app.use('/auth', authRoutes);

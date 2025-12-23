@@ -53,4 +53,21 @@ export class SurveyService {
       return QRCode.toDataURL(text);
     });
   }
+
+  // Методы для управления пользователями (доступны только суперадминистратору)
+  createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Observable<User> {
+    return this.http.post<User>(`${this.API_URL}/admin/users`, userData);
+  }
+
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.API_URL}/admin/users`);
+  }
+
+  updateUser(id: string, userData: Partial<User>): Observable<User> {
+    return this.http.patch<User>(`${this.API_URL}/admin/users/${id}`, userData);
+  }
+
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/admin/users/${id}`);
+  }
 }

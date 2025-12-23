@@ -2,11 +2,13 @@
 
 import express, { Request, Response } from 'express';
 import pool from './utils/db';
+import { loggingMiddleware } from './middleware/logging.middleware';
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(loggingMiddleware);
 
 app.use((req, res, next) => {
   // Разрешаем только наш фронтенд

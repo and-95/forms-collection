@@ -426,6 +426,14 @@ export class SurveyBuilderComponent implements OnInit {
     });
   }
 
+   private  generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
   private patchSurveyForm(survey: Survey): void {
     this.surveyForm.patchValue({
       title: survey.title,
@@ -449,7 +457,7 @@ export class SurveyBuilderComponent implements OnInit {
 
   addQuestion(): void {
     const newQuestion: Question = {
-      id: generateUUID(),
+      id: this.generateUUID(),
       type: 'text',
       label: '',
       required: false
@@ -503,7 +511,7 @@ export class SurveyBuilderComponent implements OnInit {
     const optionsArray = this.getOptionsArray(questionIndex);
     optionsArray.push(
       this.fb.group({
-        id: [generateUUID()],
+        id: [this.generateUUID()],
         label: ['', [Validators.required, Validators.minLength(1)]]
       })
     );
@@ -632,4 +640,6 @@ export class SurveyBuilderComponent implements OnInit {
   cancel(): void {
     this.router.navigate(['/surveys']);
   }
+
+
 }

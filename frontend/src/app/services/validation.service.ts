@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Observable, of, timer } from 'rxjs';
-import { switchMap, catchError, map, forkJoin } from 'rxjs/operators';
+import { switchMap, catchError, map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';  
 import { I18nService } from './i18n.service';
 
 @Injectable({
@@ -176,7 +177,7 @@ export function combineAsyncValidators(validators: AsyncValidatorFn[]): AsyncVal
     const observables = validators.map(validator => validator(control));
     
     return forkJoin(observables).pipe(
-      map(results => {
+      map((results: (ValidationErrors | null)[]) => {  // ✅ явная типизация
         const errors = results.filter(result => result !== null);
         return errors.length > 0 ? Object.assign({}, ...errors) : null;
       })

@@ -313,10 +313,12 @@ export class UserManagementComponent implements OnInit {
     if (this.userForm.valid) {
       const userData = this.userForm.value;
       
-      const userToCreate: Omit<User, 'id'> = {
-        login: userData.login,
-        role: userData.role
-      };
+const userToCreate = {
+  login: this.userForm.value.login,
+  role: this.userForm.value.role,
+  createdAt: new Date().toISOString(),       
+  updatedAt: new Date().toISOString(),       
+};
       
       this.surveyService.createUser(userToCreate).subscribe({
         next: (user) => {

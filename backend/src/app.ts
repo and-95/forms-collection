@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/surveys', surveyRoutes);
 app.use('/api/v1/admin', adminRoutes);
 

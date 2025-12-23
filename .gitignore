@@ -1,13 +1,16 @@
-```
+``
 # Dependencies
 node_modules/
 .angular
+backend/node_modules/
 
 # Compiled/Build artifacts
 dist/
 build/
 *.js.map
 *.tsbuildinfo
+# Logs
+*.log
 
 # Environment
 .env
@@ -75,4 +78,5 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+```
 ```

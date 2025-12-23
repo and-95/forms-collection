@@ -111,3 +111,29 @@ export const changePassword = async (req: Request, res: Response) => {
   
   return res.status(200).json({ message: 'Password changed successfully' });
 };
+
+export const logout = (req: Request, res: Response) => {
+  // Clear the authentication cookies
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
+  
+  return res.status(200).json({ message: 'Logged out successfully' });
+};
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'User not authenticated' });
+  }
+
+  // Get user from database to have full user information
+  const user = await findUserById(req.user.sub);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  return res.status(200).json({
+    id: user.id,
+    login: user.login,
+    role: user.role,
+  });
+};

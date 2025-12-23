@@ -11,7 +11,7 @@ import {
 import { hashPassword, validatePassword } from '../services/password.service';
 import { logUserAction, logError } from '../utils/logger.utils';
 
-export const createUser = async (req: Request, res: Response) => {
+export const createNewUser = async (req: Request, res: Response) => {
   try {
     const { login, password, role } = req.body;
     const createdBy = req.user!.sub;

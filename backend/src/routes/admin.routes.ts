@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { 
-  createUser, 
+  createNewUser, 
   getUsers, 
   getUser, 
   updateUserProfile, 
@@ -14,7 +14,7 @@ import { roleGuard } from '../middleware/roleGuard';
 const router = Router();
 
 // Управление пользователями (только для суперадминов)
-router.post('/users', authGuard, roleGuard('superadmin'), createUser);
+router.post('/users', authGuard, roleGuard('superadmin'), createNewUser);
 router.get('/users', authGuard, roleGuard('superadmin'), getUsers);
 router.get('/users/:id', authGuard, roleGuard('superadmin'), getUser);
 router.patch('/users/:id', authGuard, roleGuard('superadmin'), updateUserProfile);

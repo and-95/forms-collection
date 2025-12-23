@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,6 @@ import { AuthService } from '../../services/auth.service';
   imports: [
     CommonModule,
     RouterLink,
-    RouterLinkActive,
     MatButtonModule,
     MatCardModule,
     MatIconModule,

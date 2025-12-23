@@ -1,46 +1,72 @@
 ```
 # Dependencies
 node_modules/
-<<<<<<< HEAD
 .angular
-=======
->>>>>>> 99576d6b24f8cef212d8643d6420aa9faaf116e3
 
-# Editor/IDE files
+# Build outputs
+dist/
+build/
+coverage/
+htmlcov/
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# Logs
+*.log
+
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *.tmp
 
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Python artifacts (if any Python project mixed in)
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
 
-# Build outputs (if any build artifacts)
-dist/
-build/
-*.min.js
-*.min.css
-coverage/
-htmlcov/
-.coverage
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# System files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Compression files
+# Testing
+coverage/
+*.coverage
+.tox/
+
+# Compiled/Binary
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Compressed
 *.zip
 *.gz
 *.tar
@@ -63,8 +89,4 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-<<<<<<< HEAD
 ```
-=======
-```
->>>>>>> 99576d6b24f8cef212d8643d6420aa9faaf116e3

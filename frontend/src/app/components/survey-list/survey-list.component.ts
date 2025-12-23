@@ -174,7 +174,7 @@ export class SurveyListComponent implements OnInit {
 
   constructor(
     private surveyService: SurveyService,
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 

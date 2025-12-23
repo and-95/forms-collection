@@ -77,6 +77,7 @@ export class AuthService {
       .pipe(
         catchError(error => {
           console.error('Change password error:', error);
+          this.handle401Error(error);
           return throwError(() => error);
         })
       );
@@ -87,6 +88,7 @@ export class AuthService {
       .pipe(
         catchError(error => {
           console.error('Refresh token error:', error);
+          this.handle401Error(error);
           return throwError(() => error);
         })
       );
@@ -100,9 +102,18 @@ export class AuthService {
           if (error.status !== 401) {
             console.error('Get current user error:', error);
           }
+          this.handle401Error(error);
           return throwError(() => error);
         })
       );
+  }
+
+  private handle401Error(error: any): void {
+    if (error.status === 401) {
+      // Unauthorized error - clear authentication state
+      this.currentUser.set(null);
+      this.isAuthenticated.set(false);
+    }
   }
 
   hasRole(requiredRole: 'admin' | 'superadmin'): boolean {

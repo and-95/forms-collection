@@ -206,8 +206,6 @@ export class SurveyResponsesComponent implements OnInit {
   private loadResponses(surveyId: string): void {
     this.loading = true;
     
-    // В реальном приложении здесь будет вызов API для получения ответов
-    // с параметрами пагинации, фильтрации и сортировки
     this.surveyService.getSurveyResponses(surveyId, {
       page: this.pageIndex,
       limit: this.pageSize,

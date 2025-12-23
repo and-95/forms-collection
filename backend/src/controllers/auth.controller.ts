@@ -5,6 +5,7 @@ import { findUserById, findUserByLogin, updateUserPassword } from '../models/use
 import { hashPassword, verifyPassword, validatePassword } from '../services/password.service';
 import { signAccessToken, signRefreshToken } from '../utils/jwt.utils';
 import { JWTPayload } from '../types';
+import { logUserAction, logError } from '../utils/logger.utils';
 
 // src/controllers/auth.controller.ts
 
@@ -12,16 +13,19 @@ export const login = async (req: Request, res: Response) => {
   const { login, password } = req.body;
 
   if (!login || !password) {
+    logUserAction('LOGIN_FAILED', req, { reason: 'Missing credentials' });
     return res.status(400).json({ error: 'Login and password are required' });
   }
 
   const user = await findUserByLogin(login);
   if (!user) {
+    logUserAction('LOGIN_FAILED', req, { reason: 'Invalid credentials', login });
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
   const isValid = await verifyPassword(password, user.password_hash);
   if (!isValid) {
+    logUserAction('LOGIN_FAILED', req, { reason: 'Invalid credentials', login });
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
@@ -44,6 +48,8 @@ export const login = async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
+  logUserAction('LOGIN_SUCCESS', req, { userId: user.id, login: user.login, role: user.role });
+  
   return res.status(200).json({
     mustChangePassword: user.must_change_password,
     user: {
@@ -75,10 +81,12 @@ export const changePassword = async (req: Request, res: Response) => {
   const userId = req.user!.sub;
 
   if (!currentPassword || !newPassword) {
+    logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'Missing passwords' });
     return res.status(400).json({ error: 'Current and new passwords are required' });
   }
 
   if (!validatePassword(newPassword)) {
+    logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'Invalid new password format' });
     return res.status(400).json({
       error: 'Password must be ≥8 chars, contain A-Z, a-z, 0-9, and !@#$%^&*',
     });
@@ -86,16 +94,20 @@ export const changePassword = async (req: Request, res: Response) => {
 
   const user = await findUserByLogin(req.user!.sub); // можно и по ID — для MVP ок
   if (!user) {
+    logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'User not found', userId });
     return res.status(404).json({ error: 'User not found' });
   }
 
   const isValid = await verifyPassword(currentPassword, user.password_hash);
   if (!isValid) {
+    logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'Current password incorrect', userId });
     return res.status(401).json({ error: 'Current password is incorrect' });
   }
 
   const newHash = await hashPassword(newPassword);
   await updateUserPassword(userId, newHash, false); // сброс флага
 
+  logUserAction('CHANGE_PASSWORD_SUCCESS', req, { userId, login: user.login });
+  
   return res.status(200).json({ message: 'Password changed successfully' });
 };

@@ -38,8 +38,24 @@ export class SurveyService {
   }
 
   // Методы для получения ответов и статистики
-  getSurveyResponses(surveyId: string): Observable<SurveyResponse[]> {
-    return this.http.get<SurveyResponse[]>(`${this.API_URL}/surveys/${surveyId}/responses`);
+  getSurveyResponses(surveyId: string, params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Observable<{ data: SurveyResponse[]; total: number }> {
+    let queryParams = '';
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.page !== undefined) searchParams.set('page', params.page.toString());
+      if (params.limit !== undefined) searchParams.set('limit', params.limit.toString());
+      if (params.search) searchParams.set('search', params.search);
+      if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
+      if (params.dateTo) searchParams.set('dateTo', params.dateTo);
+      queryParams = '?' + searchParams.toString();
+    }
+    return this.http.get<{ data: SurveyResponse[]; total: number }>(`${this.API_URL}/surveys/${surveyId}/responses${queryParams}`);
   }
 
   getSurveyStats(surveyId: string): Observable<any> {

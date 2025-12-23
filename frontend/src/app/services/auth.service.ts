@@ -77,6 +77,10 @@ export class AuthService {
     return this.http.get<User>(`${this.API_URL}/auth/me`);
   }
 
+  getCurrentUser(): Observable<User> {
+    return this.http.get<User>(`${this.API_URL}/auth/me`);
+  }
+
   hasRole(requiredRole: 'admin' | 'superadmin'): boolean {
     const user = this.currentUser();
     return user?.role === requiredRole;

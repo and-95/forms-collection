@@ -14,5 +14,6 @@ export const routes: Routes = [
   { path: 'surveys/:id/stats', loadComponent: () => import('./components/survey-stats/survey-stats.component').then(m => m.SurveyStatsComponent) },
   { path: 'f/:id', loadComponent: () => import('./components/survey-renderer/survey-renderer.component').then(m => m.SurveyRendererComponent) },
   { path: 'admin/users', loadComponent: () => import('./components/user-management/user-management.component').then(m => m.UserManagementComponent) },
+  { path: 'profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent) },
   { path: '**', redirectTo: '' }
 ];

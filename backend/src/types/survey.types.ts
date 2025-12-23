@@ -1,3 +1,5 @@
+import { Question } from './question.types';
+
 export interface Survey {
   id: string;
   title: string;
@@ -11,5 +13,3 @@ export interface Survey {
   created_at: Date;
   updated_at: Date;
 }
-
-// Question, QuestionType — уже есть в src/types/index.ts

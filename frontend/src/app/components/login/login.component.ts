@@ -145,12 +145,23 @@ export class LoginComponent {
         next: () => {
           this.loading.set(false);
           // После успешного входа перенаправляем пользователя
-          const user = this.authService.currentUser();
-          if (user?.role === 'superadmin') {
-            this.router.navigate(['/admin/users']);
-          } else {
-            this.router.navigate(['/dashboard']);
-          }
+          // Проверяем аутентификацию напрямую, чтобы убедиться, что пользователь действительно вошел
+          this.authService.getCurrentUser().subscribe({
+            next: (user) => {
+              this.authService.currentUser.set(user);
+              this.authService.isAuthenticated.set(true);
+              
+              if (user?.role === 'superadmin') {
+                this.router.navigate(['/admin/users']);
+              } else {
+                this.router.navigate(['/surveys/create']); // Redirect to create survey as the main page after login
+              }
+            },
+            error: (error) => {
+              // If we can't get user info, redirect to dashboard anyway
+              this.router.navigate(['/dashboard']);
+            }
+          });
         },
         error: (error) => {
           this.loading.set(false);

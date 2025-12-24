@@ -1,6 +1,7 @@
 // src/app.ts
 
 import express, { Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
 import pool from './utils/db';
 import { loggingMiddleware } from './middleware/logging.middleware';
 import authRoutes from './routes/auth.routes';
@@ -12,6 +13,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(loggingMiddleware);
 
 app.use((req, res, next) => {

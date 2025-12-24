@@ -1,40 +1,28 @@
-``
+```
 # Dependencies
 node_modules/
-.angular
-backend/node_modules/
-
-# Compiled/Build artifacts
-dist/
-build/
-*.js.map
-*.tsbuildinfo
-# Logs
-*.log
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
+# Logs
+*.log
+
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Logs
-*.log
-
-# Temp files
 *.tmp
 
-# Coverage
-coverage/
-htmlcov/
-*.coverage
+# Build artifacts
+dist/
+build/
+target/
 
-# Python (if any Python files exist in project)
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -45,38 +33,29 @@ venv/
 .venv/
 pip-log.txt
 pip-delete-this-directory.txt
-*.so
-*.egg-info/
-.eggs/
-mypy_cache/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# MyPy
+.mypy_cache/
+
+# PyTest
 .pytest_cache/
 
-# OS
-.DS_Store
-Thumbs.db
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```
+# Gradle
+.gradle/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
 ```

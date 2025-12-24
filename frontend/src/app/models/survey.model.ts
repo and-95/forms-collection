@@ -60,8 +60,8 @@ export interface User {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
+  mustChangePassword?: boolean;
+  user: User;
 }
 
 export interface ChangePasswordRequest {

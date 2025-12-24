@@ -8,7 +8,6 @@ import authRoutes from './routes/auth.routes';
 import surveyRoutes from './routes/survey.routes';
 import adminRoutes from './routes/admin.routes';
 import { initializeSuperAdmin } from './initializeSuperAdmin';
-import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -24,6 +23,8 @@ app.use((req, res, next) => {
     'http://127.0.0.1:5500',
     'http://localhost:5500',
     'http://localhost:4200',  // Angular dev server
+    'http://localhost:4200',  // Angular dev server (duplicate to be sure)
+    'http://127.0.0.1:4200',  // Angular dev server on 127.0.0.1
     'http://localhost:3000'   // для локального тестирования
   ];
   
@@ -31,10 +32,16 @@ app.use((req, res, next) => {
   if (origin && allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    // If origin is not in the allowed list, still allow localhost:4200 by default for development
+    if (origin && (origin.includes('localhost:4200') || origin.includes('127.0.0.1:4200'))) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    }
   }
 
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
   // Обрабатываем preflight
   if (req.method === 'OPTIONS') {

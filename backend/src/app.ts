@@ -7,12 +7,15 @@ import authRoutes from './routes/auth.routes';
 import surveyRoutes from './routes/survey.routes';
 import adminRoutes from './routes/admin.routes';
 import { initializeSuperAdmin } from './initializeSuperAdmin';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(loggingMiddleware);
+
 
 app.use((req, res, next) => {
   // Разрешаем только наш фронтенд

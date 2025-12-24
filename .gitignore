@@ -1,16 +1,35 @@
-```
+```gitignore
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
 node_modules/
 .angular
 backend/node_modules/
+venv/
+.venv/
+.env
+.env.local
+*.env.*
 
 # Compiled/Build artifacts
+# Build directories
 dist/
 build/
 *.js.map
 *.tsbuildinfo
 # Logs
 # Logs and temp files
+target/
 *.log
 *.tmp
 *.swp
@@ -71,6 +90,9 @@ mypy_cache/
 pip-selfcheck.json
 env/
 ENV/
+# System files
+.DS_Store
+Thumbs.db
 
 # Coverage
 # Build outputs
@@ -82,6 +104,9 @@ htmlcov/
 .coverage
 
 # MyPy
+# Python specific
+*.pyc
+__pycache__/
 .mypy_cache/
 
 # PyTest
@@ -89,6 +114,8 @@ htmlcov/
 
 # OS
 # Node.js
+# Node.js specific
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -134,13 +161,23 @@ Thumbs.db
 .pytest_cache/
 .mypy_cache/
 .coverage
+# Compiled JS/TS
+*.js.map
+*.ts.map
 
 # Gradle
 .gradle/
 target/
+# Logs
+*.log
 
 # Other common ignores
 *.swp
 *.swo
 *~
+```
+# Environment variables
+.env
+.env.local
+.env.*
 ```

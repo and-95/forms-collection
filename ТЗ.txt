@@ -91,53 +91,10 @@ MVP-цель: Закрыть базовый цикл: админ создаёт 
   - Модель данных — расширяемая (через JSONB и отдельные таблицы позже)  
   - Архитектура — REST API, готовая к GraphQL/microservices в будущем
 
-5. МОДЕЛЬ ДАННЫХ (УПРОЩЁННАЯ)
--- Пользователи
-users (
-  id UUID PK,
-  login VARCHAR(64) UNIQUE,
-  password_hash VARCHAR(128),
-  role ENUM('admin', 'superadmin'),
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
-)
 
--- Анкеты
-surveys (
-  id UUID PK,
-  title TEXT,
-  description TEXT,
-  structure JSONB NOT NULL,  -- [{id, type, label, required, options?, min?, max?}]
-  expires_at TIMESTAMPTZ,     -- NULL = forever
-  is_active BOOLEAN,
-  is_anonymous BOOLEAN,
-  qr_code TEXT,               -- base64
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
-)
 
--- Ответы
-responses (
-  id UUID PK,
-  survey_id UUID REFERENCES surveys(id) ON DELETE CASCADE,
-  data JSONB NOT NULL,        -- {q1: "text", q2: ["opt1", "opt2"], ...}
-  ip INET,                    -- NULL if is_anonymous
-  submitted_at TIMESTAMPTZ DEFAULT NOW()
-)
 
--- Аудит
-audit_log (
-  id BIGSERIAL PK,
-  user_id UUID REFERENCES users(id),
-  action VARCHAR(32),         -- 'CREATE_SURVEY', 'UPDATE_USER', etc.
-  target_type VARCHAR(16),    -- 'survey', 'user'
-  target_id UUID,
-  details JSONB,              -- {old_value?, new_value?}
-  created_at TIMESTAMPTZ DEFAULT NOW()
-)
-
-6. API (ОСНОВНЫЕ ЭНДПОИНТЫ)
+5. API (ОСНОВНЫЕ ЭНДПОИНТЫ)
 Метод — Путь — Описание — Роль
 POST — /auth/login — Получить JWT — —
 POST — /auth/refresh — Обновить токен — —
@@ -327,17 +284,6 @@ HTTP | HttpClient + interceptor для JWT | —
 
 Survey Builder (Drag & Drop)
 - Использовать @angular/cdk/drag-drop  
-- Модель формы:  
-  // survey-builder.component.ts
-  questions = signal<Question[]>([]);
-  form = signal<FormGroup>(this.fb.group({})); // для предпросмотра
-- Шаблон:
-  <div cdkDropList (cdkDropListDropped)="drop($event)">
-    <div *ngFor="let q of questions(); trackBy: trackById" cdkDrag>
-      <app-question-editor [question]="q" />
-      <div cdkDragHandle class="drag-handle">☰</div>
-    </div>
-  </div>
 - При drop() → обновляем questions.set(reorderedArray) и сохраняем порядок в structure.
 
 Survey Renderer (публичная анкета)

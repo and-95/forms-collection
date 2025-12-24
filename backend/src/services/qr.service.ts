@@ -16,7 +16,7 @@ export const generateQRCode = async (text: string): Promise<string> => {
     
     // Извлекаем base64 часть из Data URL
     const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-    
+    console.log(base64Data);
     return base64Data;
   } catch (error) {
     console.error('Error generating QR code:', error);

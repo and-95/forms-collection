@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes';
 import surveyRoutes from './routes/survey.routes';
 import adminRoutes from './routes/admin.routes';
 import { initializeSuperAdmin } from './initializeSuperAdmin';
+import cors from 'cors';
 
 const app = express();
 
@@ -15,7 +16,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(loggingMiddleware);
-
+app.use(cors({
+  origin: 'http://localhost:4200', // или true для разработки
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 app.use((req, res, next) => {
   // Разрешаем только наш фронтенд

@@ -22,6 +22,8 @@ import { Survey } from '../types/survey.types';
 import { generatePublicUrl } from '../utils/url.utils';
 import { logUserAction, logError } from '../utils/logger.utils';
 
+
+
 export const createSurvey = async (req: Request, res: Response) => {
   try {
     const { title, description, structure, expiresAt, isAnonymous } = req.body;
@@ -48,7 +50,7 @@ export const createSurvey = async (req: Request, res: Response) => {
     const qrCode = await generateQRCode(publicUrl);
     
     // Обновление анкеты с QR-кодом
-    const updatedSurvey = await updateSurveyModel(survey.id, userId, { qr_code: qrCode } as Partial<Survey>);
+    const updatedSurvey = await updateSurveyModel(survey.id, userId, { qr_code: qrCode });
     
     if (!updatedSurvey) {
       throw new Error('Failed to update survey with QR code');
@@ -158,7 +160,7 @@ export const updateSurvey = async (req: Request, res: Response) => {
     if (structure !== undefined) {
       const publicUrl = generatePublicUrl(updatedSurvey.id);
       const qrCode = await generateQRCode(publicUrl);
-      await updateSurveyModel(updatedSurvey.id, userId, { qr_code: qrCode } as Partial<Survey>);
+      await updateSurveyModel(updatedSurvey.id, userId, { qr_code: qrCode });
     }
     
     logUserAction('UPDATE_SURVEY', req, { 

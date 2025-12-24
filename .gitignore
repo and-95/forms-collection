@@ -1,4 +1,4 @@
-``
+```
 # Dependencies
 node_modules/
 .angular
@@ -18,6 +18,10 @@ build/
 *.env.*
 
 # Editors
+# Logs
+*.log
+
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
@@ -33,15 +37,17 @@ build/
 coverage/
 htmlcov/
 *.coverage
+# Build artifacts
+dist/
+build/
+target/
 
 # Python (if any Python files exist in project)
+# Python
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-.Python
-env/
-venv/
+@@ -45,38 +33,29 @@ venv/
 .venv/
 pip-log.txt
 pip-delete-this-directory.txt
@@ -49,9 +55,28 @@ pip-delete-this-directory.txt
 *.egg-info/
 .eggs/
 mypy_cache/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# MyPy
+.mypy_cache/
+
+# PyTest
 .pytest_cache/
 
 # OS
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Gradle
+.gradle/
+
+# macOS
 .DS_Store
 Thumbs.db
 
@@ -79,4 +104,7 @@ Thumbs.db
 *.tar.xz
 *.tar.zst
 ```
+```
+# Windows
+Thumbs.db
 ```

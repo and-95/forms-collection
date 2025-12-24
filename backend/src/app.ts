@@ -1,6 +1,7 @@
 // src/app.ts
 
 import express, { Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
 import pool from './utils/db';
 import { loggingMiddleware } from './middleware/logging.middleware';
 import authRoutes from './routes/auth.routes';

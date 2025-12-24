@@ -5,15 +5,15 @@ import {
   createSurvey as createSurveyModel, 
   getSurveyById, 
   getSurveysByUser,
-  updateSurvey,
-  deleteSurvey,
-  toggleSurveyActive
+  updateSurvey as updateSurveyModel,
+  deleteSurvey as deleteSurveyModel,
+  toggleSurveyActive as toggleSurveyActiveModel
 } from '../models/survey.model';
 import { 
   createResponse,
   getResponseCountBySurveyId,
   getResponsesBySurveyId,
-  getSurveyStats,
+  getSurveyStats as getSurveyStatsModel,
   getDetailedStatsBySurveyId
 } from '../models/response.model';
 import { generateQRCode } from '../services/qr.service';
@@ -48,7 +48,7 @@ export const createSurvey = async (req: Request, res: Response) => {
     const qrCode = await generateQRCode(publicUrl);
     
     // Обновление анкеты с QR-кодом
-    const updatedSurvey = await updateSurvey(survey.id, userId, { qr_code: qrCode } as Partial<Survey>);
+    const updatedSurvey = await updateSurveyModel(survey.id, userId, { qr_code: qrCode } as Partial<Survey>);
     
     if (!updatedSurvey) {
       throw new Error('Failed to update survey with QR code');
@@ -141,10 +141,10 @@ export const updateSurvey = async (req: Request, res: Response) => {
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
     if (structure !== undefined) updates.structure = structure;
-    if (expiresAt !== undefined) updates.expires_at = expiresAt ? new Date(expiresAt) : null;
+    if (expiresAt !== undefined) updates.expires_at = expiresAt ? new Date(expiresAt) : undefined;
     if (isAnonymous !== undefined) updates.is_anonymous = isAnonymous;
     
-    const updatedSurvey = await updateSurvey(id, userId, updates);
+    const updatedSurvey = await updateSurveyModel(id, userId, updates);
     
     if (!updatedSurvey) {
       logUserAction('UPDATE_SURVEY_FAILED', req, { 
@@ -158,7 +158,7 @@ export const updateSurvey = async (req: Request, res: Response) => {
     if (structure !== undefined) {
       const publicUrl = generatePublicUrl(updatedSurvey.id);
       const qrCode = await generateQRCode(publicUrl);
-      await updateSurvey(updatedSurvey.id, userId, { qr_code: qrCode } as Partial<Survey>);
+      await updateSurveyModel(updatedSurvey.id, userId, { qr_code: qrCode } as Partial<Survey>);
     }
     
     logUserAction('UPDATE_SURVEY', req, { 
@@ -181,7 +181,7 @@ export const deleteSurvey = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = req.user!.sub;
     
-    const success = await deleteSurvey(id, userId);
+    const success = await deleteSurveyModel(id, userId);
     
     if (!success) {
       logUserAction('DELETE_SURVEY_FAILED', req, { 
@@ -228,7 +228,7 @@ export const toggleSurveyActive = async (req: Request, res: Response) => {
     }
     
     const isActive = req.body.active !== undefined ? req.body.active : !survey.is_active;
-    const updatedSurvey = await toggleSurveyActive(id, userId, isActive);
+    const updatedSurvey = await toggleSurveyActiveModel(id, userId, isActive);
     
     if (!updatedSurvey) {
       logUserAction('TOGGLE_SURVEY_ACTIVE_FAILED', req, { 
@@ -382,7 +382,7 @@ export const getSurveyStats = async (req: Request, res: Response) => {
     }
     
     // Получаем статистику из базы данных
-    const stats = await getSurveyStats(id);
+    const stats = await getSurveyStatsModel(id);
     
     // Дополнительно можем получить статистику по каждому вопросу
     const detailedStats = await getDetailedStatsBySurveyId(id, survey.structure);

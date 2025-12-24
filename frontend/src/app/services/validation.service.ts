@@ -13,10 +13,9 @@ export class ValidationService {
 
   // Password validation requirements
   static readonly PASSWORD_REQUIREMENTS = {
-    minLength: 8,
+    minLength: 6,
     hasUpperCase: true,
     hasLowerCase: true,
-    hasNumbers: true,
     hasSpecialChars: true,
     specialChars: /[!@#$%^&*]/,
   };
@@ -47,11 +46,6 @@ export class ValidationService {
       // Check for lowercase letter
       if (ValidationService.PASSWORD_REQUIREMENTS.hasLowerCase && !/[a-z]/.test(value)) {
         errors['requireLowercase'] = true;
-      }
-
-      // Check for numbers
-      if (ValidationService.PASSWORD_REQUIREMENTS.hasNumbers && !/\d/.test(value)) {
-        errors['requireNumbers'] = true;
       }
 
       // Check for special characters

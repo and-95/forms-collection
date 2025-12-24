@@ -14,6 +14,6 @@ export const verifyPassword = async (plain: string, hash: string): Promise<boole
 
 // Валидатор по ТЗ: ≥8, A-Z, a-z, 0-9, спецсимвол
 export const validatePassword = (password: string): boolean => {
-  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+  const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/;
   return re.test(password);
 };

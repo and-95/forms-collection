@@ -18,7 +18,7 @@ export const updateUserPassword = async (
   mustChangePassword: boolean = false
 ): Promise<void> => {
   const query = `
-    UPDATE ${DB_SCHEMA}
+    UPDATE ${DB_SCHEMA}.users
     SET password_hash = $1, must_change_password = $2, updated_at = NOW()
     WHERE id = $3
   `;
@@ -28,7 +28,7 @@ export const updateUserPassword = async (
 export const findUserById = async (id: string): Promise<User | null> => {
   const query = `
     SELECT id, login, password_hash, role, must_change_password, created_at, updated_at
-    FROM ${DB_SCHEMA}
+    FROM ${DB_SCHEMA}.users
     WHERE id = $1
   `;
   const res = await db.query(query, [id]);

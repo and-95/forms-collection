@@ -1,5 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -141,7 +148,8 @@ import { AuthService } from '../../services/auth.service';
                     mat-icon-button 
                     color="warn" 
                     (click)="deleteUser(user.id)"
-                    matTooltip="Удалить пользователя">
+                    [disabled]="user.id === currentUserId"
+                    [matTooltip]="user.id === currentUserId ? 'Нельзя удалить себя' : 'Удалить пользователя'">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </td>
@@ -214,6 +222,10 @@ import { AuthService } from '../../services/auth.service';
       background-color: #f3e5f5;
       color: #7b1fa2;
     }
+
+    .mat-mdc-tooltip {
+      white-space: pre-line;
+    }
     
     @media (max-width: 768px) {
       .form-row {
@@ -231,7 +243,8 @@ export class UserManagementComponent implements OnInit {
   users: User[] = [];
   userForm: FormGroup;
   displayedColumns: string[] = ['login', 'role', 'createdAt', 'updatedAt'];
-  
+  currentUserId: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private surveyService: SurveyService,
@@ -240,116 +253,143 @@ export class UserManagementComponent implements OnInit {
   ) {
     this.userForm = this.createForm();
   }
-  
+
+  // ✅ Кастомный валидатор как стрелочная функция — контекст this не теряется
+  passwordValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (!value) return null;
+
+    const hasMinLength = value.length >= 6;
+    const hasUpperCase = /[A-ZА-Я]/.test(value); // Поддержка кириллицы (если нужно)
+    const hasLowerCase = /[a-zа-я]/.test(value);
+
+    // Расширенный набор спецсимволов (часто используемые + оригинальные)
+    const hasSpecialChar = /[!@#$%^&*?_\-+=]/.test(value);
+
+    const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasSpecialChar;
+
+    return isValid ? null : { passwordRequirements: true };
+  };
+
   ngOnInit(): void {
-    // В реальном приложении здесь будет загрузка пользователей с сервера
+this.authService.getCurrentUser().subscribe(user => {
+  this.currentUserId = user?.id || null;
+});
     this.loadUsers();
-    
-    // Добавляем столбец действий, если пользователь - суперадмин
+
     if (this.authService.hasRole('superadmin')) {
       this.displayedColumns.push('actions');
     }
   }
-  
+
   private createForm(): FormGroup {
     return this.fb.group({
-      login: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(64)]],
+      login: ['', [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(64),
+        Validators.pattern(/^[a-zA-Z0-9._-]+$/) // только допустимые символы
+      ]],
       role: ['admin', Validators.required],
-      password: ['', [Validators.required, this.passwordValidator]],
+      password: ['', [
+        Validators.required,
+        this.passwordValidator // ✅ теперь безопасно
+      ]],
       confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
+    }, {
+      validators: this.passwordMatchValidator
+    });
   }
-  
-  private passwordValidator(control: any) {
-    if (!control.value) return null;
-    
-    const value = control.value;
-    const hasMinLength = value.length >= 8;
-    const hasUpperCase = /[A-Z]/.test(value);
-    const hasLowerCase = /[a-z]/.test(value);
-    const hasNumbers = /\d/.test(value);
-    const hasSpecialChar = /[!@#$%^&*]/.test(value);
-    
-    const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
-    
-    return isValid ? null : { passwordRequirements: true };
+
+  // Валидатор совпадения паролей
+  private passwordMatchValidator(formGroup: FormGroup): ValidationErrors | null {
+    const password = formGroup.get('password')?.value;
+    const confirmPassword = formGroup.get('confirmPassword')?.value;
+
+    return password === confirmPassword ? null : { passwordMismatch: true };
   }
-  
-  private passwordMatchValidator(formGroup: FormGroup) {
-    const password = formGroup.get('password');
-    const confirmPassword = formGroup.get('confirmPassword');
-    
-    if (!password || !confirmPassword) return null;
-    
-    return password.value === confirmPassword.value ? null : { passwordMismatch: true };
-  }
-  
+
   getLoginErrorMessage(): string {
     const control = this.userForm.get('login');
-    if (control?.errors?.['required']) {
-      return 'Логин обязателен для заполнения';
-    }
-    if (control?.errors?.['minlength']) {
-      return 'Логин должен содержать не менее 3 символов';
-    }
-    if (control?.errors?.['maxlength']) {
-      return 'Логин должен содержать не более 64 символов';
-    }
+    if (!control) return '';
+
+    if (control.hasError('required')) return 'Логин обязателен';
+    if (control.hasError('minlength')) return 'Не менее 3 символов';
+    if (control.hasError('maxlength')) return 'Не более 64 символов';
+    if (control.hasError('pattern')) return 'Разрешены: буквы, цифры, . _ -';
     return 'Некорректный логин';
   }
-  
+
   getPasswordErrorMessage(): string {
     const control = this.userForm.get('password');
-    if (control?.errors?.['required']) {
-      return 'Пароль обязателен для заполнения';
-    }
-    if (control?.errors?.['passwordRequirements']) {
-      return 'Пароль должен содержать не менее 8 символов, включая заглавные и строчные буквы, цифры и спецсимвол (!@#$%^&*)';
+    if (!control) return '';
+
+    if (control.hasError('required')) return 'Пароль обязателен';
+    if (control.hasError('passwordRequirements')) {
+      return 'Пароль должен содержать:\n' +
+             '• не менее 8 символов\n' +
+             '• заглавные буквы (A-Z)\n' +
+             '• строчные буквы (a-z)\n' +
+             '• цифры (0-9)\n' +
+             '• спецсимволы (!@#$%^&*?_-+=)';
     }
     return 'Некорректный пароль';
   }
-  
+
   createUser(): void {
-    if (this.userForm.valid) {
-      const userData = this.userForm.value;
-      
-const userToCreate = {
-  login: this.userForm.value.login,
-  role: this.userForm.value.role,
-  createdAt: new Date().toISOString(),       
-  updatedAt: new Date().toISOString(),       
-};
-      
-      this.surveyService.createUser(userToCreate).subscribe({
-        next: (user) => {
-          console.log('User created successfully', user);
-          // Добавляем нового пользователя в список
-          this.users = [user, ...this.users];
-          this.userForm.reset();
-          this.userForm.get('role')?.setValue('admin');
-          alert('Пользователь успешно создан');
-        },
-        error: (error) => {
-          console.error('Error creating user', error);
-          alert('Ошибка при создании пользователя: ' + (error.error?.message || 'Неизвестная ошибка'));
-        }
-      });
-    } else {
+    if (this.userForm.invalid) {
       this.markFormGroupTouched();
+      return;
     }
-  }
-  
-  private markFormGroupTouched(): void {
-    Object.keys(this.userForm.controls).forEach(key => {
-      const control = this.userForm.get(key);
-      control?.markAsTouched();
+
+    const { login, role, password } = this.userForm.value;
+
+    // ❗ ВАЖНО: вы не отправляли пароль на сервер! Добавляем его в payload
+    const userToCreate = {
+      login,
+      password, // ✅ Теперь пароль передаётся
+      role
+    };
+
+    this.surveyService.createUser(userToCreate).subscribe({
+      next: (user) => {
+        console.log('User created successfully', user);
+        this.users = [user, ...this.users];
+        this.userForm.reset({ role: 'admin' });
+        alert('✅ Пользователь успешно создан');
+      },
+      error: (error) => {
+        console.error('Error creating user', error);
+        const message = error.error?.message || error.message || 'Неизвестная ошибка';
+        alert('❌ Ошибка создания пользователя:\n' + message);
+      }
     });
   }
-  
-  private generateId(): string {
-    return 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
+  deleteUser(userId: string): void {
+    if (userId === this.currentUserId) {
+      alert('❌ Вы не можете удалить свою учётную запись');
+      return;
+    }
+
+    if (!confirm('❗ Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.')) {
+      return;
+    }
+
+    this.surveyService.deleteUser(userId).subscribe({
+      next: () => {
+        console.log('User deleted successfully');
+        this.users = this.users.filter(user => user.id !== userId);
+        alert('✅ Пользователь удалён');
+      },
+      error: (error) => {
+        console.error('Error deleting user', error);
+        const message = error.error?.message || 'Неизвестная ошибка';
+        alert('❌ Ошибка удаления:\n' + message);
+      }
+    });
   }
-  
+
   private loadUsers(): void {
     this.surveyService.getUsers().subscribe({
       next: (users) => {
@@ -357,25 +397,14 @@ const userToCreate = {
       },
       error: (error) => {
         console.error('Error loading users', error);
-        // В реальном приложении нужно показать сообщение об ошибке
+        alert('❌ Не удалось загрузить список пользователей');
       }
     });
   }
-  
-  deleteUser(userId: string): void {
-    if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
-      this.surveyService.deleteUser(userId).subscribe({
-        next: () => {
-          console.log('User deleted successfully');
-          // Удаляем пользователя из списка
-          this.users = this.users.filter(user => user.id !== userId);
-          alert('Пользователь успешно удален');
-        },
-        error: (error) => {
-          console.error('Error deleting user', error);
-          alert('Ошибка при удалении пользователя: ' + (error.error?.message || 'Неизвестная ошибка'));
-        }
-      });
-    }
+
+  private markFormGroupTouched(): void {
+    Object.values(this.userForm.controls).forEach(control => {
+      control.markAsTouched();
+    });
   }
 }

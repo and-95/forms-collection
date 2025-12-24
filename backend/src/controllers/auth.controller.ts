@@ -78,7 +78,7 @@ export const refresh = (req: Request, res: Response) => {
 
 export const changePassword = async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
-  const userId = req.user!.sub;
+  const userId = req.user!.sub; // ← это ID
 
   if (!currentPassword || !newPassword) {
     logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'Missing passwords' });
@@ -92,7 +92,8 @@ export const changePassword = async (req: Request, res: Response) => {
     });
   }
 
-  const user = await findUserByLogin(req.user!.sub); // можно и по ID — для MVP ок
+  // ✅ ИСПРАВЛЕНО: ищем по ID, а не по логину
+  const user = await findUserById(userId);
   if (!user) {
     logUserAction('CHANGE_PASSWORD_FAILED', req, { reason: 'User not found', userId });
     return res.status(404).json({ error: 'User not found' });

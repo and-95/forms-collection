@@ -10,7 +10,7 @@ export class AuthInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // For API requests, include credentials (cookies) with each request
     // httpOnly cookies will be automatically included by the browser
-    if (req.url.includes('/api/v1')) {
+    if (req.url.includes('http://localhost:3000/api/v1')) {
       req = req.clone({
         withCredentials: true  // This ensures cookies are sent with requests
       });

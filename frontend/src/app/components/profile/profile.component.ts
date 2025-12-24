@@ -213,7 +213,7 @@ export class ProfileComponent implements OnInit {
   
   private createPasswordForm(): FormGroup {
     return this.fb.group({
-      currentPassword: ['', [Validators.required, Validators.minLength(8)]],
+      currentPassword: ['', [Validators.required, Validators.minLength(6)]],
       newPassword: ['', [Validators.required, this.passwordValidator]],
       confirmNewPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
@@ -223,13 +223,12 @@ export class ProfileComponent implements OnInit {
     if (!control.value) return null;
     
     const value = control.value;
-    const hasMinLength = value.length >= 8;
+    const hasMinLength = value.length >= 6;
     const hasUpperCase = /[A-Z]/.test(value);
     const hasLowerCase = /[a-z]/.test(value);
-    const hasNumbers = /\d/.test(value);
     const hasSpecialChar = /[!@#$%^&*]/.test(value);
     
-    const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+    const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasSpecialChar;
     
     return isValid ? null : { passwordRequirements: true };
   }

@@ -8,7 +8,7 @@ import { Survey, SurveyResponse, SurveySubmission, User } from '../models/survey
   providedIn: 'root'
 })
 export class SurveyService {
-  private readonly API_URL = '/api/v1';
+  private readonly API_URL = 'http://localhost:3000/api/v1';
 
   constructor(private http: HttpClient) { }
 

@@ -1,91 +1,37 @@
 ```
 # Dependencies
 node_modules/
-.angular
-backend/node_modules/
 
-# Compiled/Build artifacts
-dist/
-build/
-*.js.map
-*.tsbuildinfo
-# Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
 
 # Environment
 .env
 .env.local
 *.env.*
-.env.*
 
-# Editors
-# Logs
-*.log
-
-@@ -26,85 +15,35 @@ build/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-
-# Temp files
-*.tmp
-
-# Coverage
-coverage/
-htmlcov/
-*.coverage
-# Build artifacts
-dist/
-build/
-target/
-
-# Python (if any Python files exist in project)
 # Python
-# Python (if applicable)
 __pycache__/
 *.pyc
 *.pyo
-@@ -45,38 +33,29 @@ venv/
 *.pyd
 .Python
 venv/
 .venv/
-.env/
-.venv.bak/
-pip-log.txt
-pip-delete-this-directory.txt
-*.so
-*.egg-info/
-.eggs/
-mypy_cache/
-pip-selfcheck.json
+env/
+ENV/
 
-# Coverage
 # Build outputs
 dist/
 build/
-target/
 coverage/
 htmlcov/
-.coverage
-
-# MyPy
-.mypy_cache/
-
-# PyTest
-.pytest_cache/
-
-# OS
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Gradle
-.gradle/
 *.out
 *.exe
 *.dll
@@ -93,12 +39,7 @@ yarn-error.log*
 *.a
 *.obj
 
-# macOS
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Compressed files
+# Compression
 *.zip
 *.gz
 *.tar
@@ -117,13 +58,22 @@ Thumbs.db
 *.Z
 *.lz
 *.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```
-```
-# Windows
+
+# OS generated files
+.DS_Store
 Thumbs.db
-```
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Gradle
+.gradle/
+target/
+
+# Other common ignores
+*.swp
+*.swo
+*~
 ```

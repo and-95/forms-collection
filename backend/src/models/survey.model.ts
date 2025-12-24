@@ -22,6 +22,11 @@ export const createSurvey = async (
   const values = [title, description, JSON.stringify(structure), expiresAt, isAnonymous, createdBy];
   
   const result = await db.query(query, values);
+  
+  if (!result.rows || result.rows.length === 0) {
+    throw new Error('Survey creation failed: no rows returned from database');
+  }
+  
   return result.rows[0] as Survey;
 };
 

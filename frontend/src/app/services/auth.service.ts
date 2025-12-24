@@ -8,7 +8,7 @@ import { AuthResponse, User, ChangePasswordRequest } from '../models/survey.mode
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = '/api/v1';
+  private readonly API_URL = 'http://localhost:3000/api/v1';
   
   currentUser = signal<User | null>(null);
   isAuthenticated = signal(false);

@@ -16,13 +16,13 @@ build/
 .env
 .env.local
 *.env.*
+.env.*
 
 # Editors
 # Logs
 *.log
 
-# Editor/IDE
-.vscode/
+@@ -26,85 +15,35 @@ build/
 .idea/
 *.swp
 *.swo
@@ -44,19 +44,30 @@ target/
 
 # Python (if any Python files exist in project)
 # Python
+# Python (if applicable)
 __pycache__/
 *.pyc
 *.pyo
 @@ -45,38 +33,29 @@ venv/
+*.pyd
+.Python
+venv/
 .venv/
+.env/
+.venv.bak/
 pip-log.txt
 pip-delete-this-directory.txt
 *.so
 *.egg-info/
 .eggs/
 mypy_cache/
+pip-selfcheck.json
 
 # Coverage
+# Build outputs
+dist/
+build/
+target/
 coverage/
 htmlcov/
 .coverage
@@ -75,8 +86,15 @@ yarn-error.log*
 
 # Gradle
 .gradle/
+*.out
+*.exe
+*.dll
+*.so
+*.a
+*.obj
 
 # macOS
+# OS generated files
 .DS_Store
 Thumbs.db
 
@@ -107,4 +125,5 @@ Thumbs.db
 ```
 # Windows
 Thumbs.db
+```
 ```

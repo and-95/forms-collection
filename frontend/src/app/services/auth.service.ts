@@ -37,16 +37,9 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, { login, password })
       .pipe(
         tap(response => {
-          // After login, get user info to set current user
-          this.getCurrentUser().subscribe({
-            next: (user) => {
-              this.currentUser.set(user);
-              this.isAuthenticated.set(true);
-            },
-            error: (error) => {
-              console.error('Failed to load user info after login', error);
-            }
-          });
+          // Use user data from login response to set current user immediately
+          this.currentUser.set(response.user);
+          this.isAuthenticated.set(true);
         }),
         catchError(error => {
           console.error('Login error:', error);

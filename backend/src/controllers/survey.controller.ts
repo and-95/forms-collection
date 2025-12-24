@@ -39,12 +39,20 @@ export const createSurvey = async (req: Request, res: Response) => {
       userId
     );
 
+    if (!survey || !survey.id) {
+      throw new Error('Survey creation failed: survey object or id is missing');
+    }
+
     // Генерация QR-кода
     const publicUrl = generatePublicUrl(survey.id);
     const qrCode = await generateQRCode(publicUrl);
     
     // Обновление анкеты с QR-кодом
     const updatedSurvey = await updateSurvey(survey.id, userId, { qr_code: qrCode } as Partial<Survey>);
+    
+    if (!updatedSurvey) {
+      throw new Error('Failed to update survey with QR code');
+    }
 
     logUserAction('CREATE_SURVEY', req, { 
       surveyId: survey.id, 
@@ -53,17 +61,18 @@ export const createSurvey = async (req: Request, res: Response) => {
     }, survey.id, 'survey');
 
     res.status(201).json({
-      id: updatedSurvey!.id,
-      title: updatedSurvey!.title,
+      id: updatedSurvey.id,
+      title: updatedSurvey.title,
       publicUrl,
       qrCode,
-      expiresAt: updatedSurvey!.expires_at,
-      isActive: updatedSurvey!.is_active
+      expiresAt: updatedSurvey.expires_at,
+      isActive: updatedSurvey.is_active
     });
   } catch (error) {
     logError('CREATE_SURVEY', req, error as Error, { 
       title: req.body.title,
-      userId: req.user!.sub
+      userId: req.user!.sub,
+      error: (error as Error).message
     });
     res.status(500).json({ error: 'Internal server error' });
   }

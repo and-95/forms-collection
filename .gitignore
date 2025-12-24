@@ -10,7 +10,14 @@ build/
 *.js.map
 *.tsbuildinfo
 # Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
 
 # Environment
 .env
@@ -62,6 +69,8 @@ pip-delete-this-directory.txt
 .eggs/
 mypy_cache/
 pip-selfcheck.json
+env/
+ENV/
 
 # Coverage
 # Build outputs
@@ -99,21 +108,11 @@ yarn-error.log*
 Thumbs.db
 
 # Compressed files
+# Compression
 *.zip
 *.gz
 *.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
+@@ -117,13 +58,22 @@ Thumbs.db
 *.Z
 *.lz
 *.lzo
@@ -124,6 +123,24 @@ Thumbs.db
 ```
 ```
 # Windows
+
+# OS generated files
+.DS_Store
 Thumbs.db
 ```
+```
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Gradle
+.gradle/
+target/
+
+# Other common ignores
+*.swp
+*.swo
+*~
 ```

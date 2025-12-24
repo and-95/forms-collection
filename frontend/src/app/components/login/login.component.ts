@@ -150,7 +150,7 @@ export class LoginComponent {
           if (response.user?.role === 'superadmin') {
             this.router.navigate(['/admin/users']);
           } else {
-            this.router.navigate(['/surveys/create']); // Redirect to create survey as the main page after login
+            this.router.navigate(['/dashboard']); // Redirect to dashboard as the main page after login
           }
         },
         error: (error) => {

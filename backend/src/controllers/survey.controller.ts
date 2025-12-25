@@ -298,10 +298,12 @@ export const getPublicSurvey = async (req: Request, res: Response) => {
 export const submitSurvey = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { data } = req.body;
-    
+    const data = req.body;
+
     // Получаем анкету и проверяем, активна ли она и не просрочена ли
     const survey = await getSurveyById(id);
+
+    
     
     if (!survey) {
       logUserAction('SUBMIT_SURVEY_FAILED', req, { 
@@ -326,6 +328,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
       }, id, 'survey');
       return res.status(400).json({ error: 'Survey has expired' });
     }
+
     
     // Валидация ответов
     const validation = validateSurveyResponse(survey.structure, data);
@@ -361,6 +364,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
     });
     res.status(500).json({ error: 'Internal server error' });
   }
+  
 };
 
 export const getSurveyResponses = async (req: Request, res: Response) => {

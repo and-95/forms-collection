@@ -1,3 +1,5 @@
+//survey-renderer.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -40,7 +42,7 @@ import { MatSliderModule } from '@angular/material/slider';
         <!-- Отображение QR-кода -->
         <div class="qr-container" *ngIf="survey?.qrCode">
           <div class="qr-code">
-            <img [src]="survey.qrCode" alt="QR Code" />
+            <img [src]="survey?.qrCode" alt="QR Code" />
             <p>Сканируйте QR-код для доступа к анкете</p>
           </div>
         </div>
@@ -52,8 +54,7 @@ import { MatSliderModule } from '@angular/material/slider';
         (ngSubmit)="submitSurvey()">
         <div 
           class="question-container" 
-          *ngFor="let question of survey?.structure; let i = index; trackBy: trackByQuestionId"
-          [formGroup]="getQuestionGroup(question.id)">
+          *ngFor="let question of survey?.structure; let i = index; trackBy: trackByQuestionId">
           <mat-card class="question-card">
             <mat-card-header>
               <mat-card-title>{{ question.label }}</mat-card-title>
@@ -96,20 +97,18 @@ import { MatSliderModule } from '@angular/material/slider';
               </mat-form-field>
               
               <!-- Выбор даты -->
-              <mat-form-field 
-                *ngIf="question.type === 'date'"
-                class="question-field">
-                <input 
-                  matInput 
-                  [matDatepicker]="picker" 
-                  [formControlName]="question.id"
-                  [placeholder]="question.label">
-                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-                <mat-error *ngIf="getControl(question.id).invalid && getControl(question.id).touched">
-                  {{ getErrorMessage(question) }}
-                </mat-error>
-              </mat-form-field>
+<mat-form-field
+  *ngIf="question.type === 'date' || question.type === 'datetime'"
+  class="question-field">
+  <input
+    matInput
+    [type]="question.type === 'datetime' ? 'datetime-local' : 'date'"
+    [formControlName]="question.id"
+    [placeholder]="question.label">
+  <mat-error *ngIf="getControl(question.id).invalid && getControl(question.id).touched">
+    {{ getErrorMessage(question) }}
+  </mat-error>
+</mat-form-field>
               
               <!-- Радиокнопки -->
               <mat-radio-group 
@@ -151,21 +150,22 @@ import { MatSliderModule } from '@angular/material/slider';
               </div>
               
               <!-- Шкала -->
-              <div 
-                *ngIf="question.type === 'scale'"
-                class="scale-container">
-                <div class="scale-labels">
-                  <span>{{ question.min || 1 }}</span>
-                  <span>{{ question.max || 5 }}</span>
-                </div>
-                <mat-slider 
-                  [min]="question.min || 1" 
-                  [max]="question.max || 5" 
-                  [step]="question.step || 1"
-                  [formControlName]="question.id">
-                </mat-slider>
-                <div class="scale-value">{{ getControl(question.id).value }}</div>
-              </div>
+<!-- Шкала -->
+<div 
+  *ngIf="question.type === 'scale'"
+  class="scale-container">
+  <div class="scale-labels">
+    <span>{{ question.min || 1 }}</span>
+    <span>{{ question.max || 5 }}</span>
+  </div>
+  <mat-slider 
+    [min]="question.min || 1" 
+    [max]="question.max || 5" 
+    [step]="question.step || 1">
+    <input matSliderThumb [formControlName]="question.id" />
+  </mat-slider>
+  <div class="scale-value">{{ getControl(question.id)?.value ?? (question.min || 1) }}</div>
+</div>
             </mat-card-content>
           </mat-card>
         </div>
@@ -186,7 +186,6 @@ import { MatSliderModule } from '@angular/material/slider';
       <div class="thank-you-container">
         <h1>Спасибо за участие!</h1>
         <p>Ваш ответ успешно сохранен.</p>
-        <button mat-raised-button color="primary" (click)="goHome()">Вернуться на главную</button>
       </div>
     </ng-template>
   `,
@@ -329,50 +328,64 @@ export class SurveyRendererComponent implements OnInit {
     });
   }
 
-  private loadSurvey(id: string): void {
-    this.surveyService.getPublicSurvey(id).subscribe({
-      next: (survey) => {
-        this.survey = survey;
-        if (survey.isActive) {
-          this.buildForm(survey.structure);
-        } else {
-          // Анкета неактивна, показать сообщение
-          this.router.navigate(['/']);
-        }
-      },
-      error: (error) => {
-        console.error('Error loading survey', error);
+private loadSurvey(id: string): void {
+  this.surveyService.getPublicSurvey(id).subscribe({
+    next: (survey) => {
+      // Копируем объект, чтобы не мутировать оригинал из сервиса
+      this.survey = { ...survey };
+
+      // 🔑 Исправляем QR-код: добавляем data-URL префикс
+      if (this.survey.qrCode && !this.survey.qrCode.startsWith('data:')) {
+        this.survey.qrCode = `data:image/png;base64,${this.survey.qrCode}`;
+      }
+
+      if (survey.isActive) {
+        this.buildForm(survey.structure);
+      } else {
         this.router.navigate(['/']);
       }
-    });
-  }
+    },
+    error: (error) => {
+      console.error('Ошибка загрузки анкеты', error);
+      this.router.navigate(['/']);
+    }
+  });
+}
 
-  private buildForm(questions: Question[]): void {
-    const group: { [key: string]: any } = {};
-    
-    questions.forEach(question => {
-      let validators = [];
+private buildForm(questions: Question[]): void {
+  const group: { [key: string]: any } = {};
+
+  questions.forEach(question => {
+    let validators = [];
+    if (question.required) {
+      validators.push(Validators.required);
+    }
+
+    if (question.type === 'email') {
+      validators.push(Validators.email);
+    }
+
+    let initialValue: any;
+
+    if (question.type === 'checkbox') {
+      initialValue = [];
+      // Validators.requiredTrue — странно: он требует, чтобы control.value === true, но у вас массив.
+      // Лучше использовать кастомный валидатор для чекбоксов:
       if (question.required) {
-        validators.push(Validators.required);
+        validators.push(() => (initialValue.length > 0 ? null : { required: true }));
       }
-      
-      // Добавить специфичные валидаторы для типов
-      if (question.type === 'email') {
-        validators.push(Validators.email);
-      } else if (question.type === 'phone') {
-        // Можно добавить валидатор для телефона
-      }
-      
-      // Для чекбоксов создаем отдельную логику
-      if (question.type === 'checkbox') {
-        group[question.id] = this.fb.control([], Validators.requiredTrue);
-      } else {
-        group[question.id] = this.fb.control('', validators);
-      }
-    });
-    
-    this.surveyForm = this.fb.group(group);
-  }
+    } else if (question.type === 'scale') {
+      // Инициализируем числом, например, по центру или min
+      initialValue = question.min || 1;
+    } else {
+      initialValue = '';
+    }
+
+    group[question.id] = this.fb.control(initialValue, validators);
+  });
+
+  this.surveyForm = this.fb.group(group);
+}
 
   getQuestionGroup(questionId: string): FormGroup {
     return this.surveyForm.get(questionId) as any;

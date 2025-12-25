@@ -2,5 +2,5 @@
 
 export const generatePublicUrl = (surveyId: string): string => {
   // В продакшене можно использовать короткий ID, но для MVP используем UUID
-  return `/f/${surveyId}`;
+  return `${process.env.DEV_IP}/f/${surveyId}`;
 };

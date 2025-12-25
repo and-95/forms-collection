@@ -1,4 +1,4 @@
-
+//survey.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -79,6 +79,7 @@ export class SurveyService {
   // Метод для генерации QR-кода для публичной ссылки на анкету
   generateSurveyQRCode(surveyId: string): Promise<string> {
     const publicUrl = `${window.location.origin}/f/${surveyId}`;
+    console.log()
     return this.generateQRCode(publicUrl);
   }
 

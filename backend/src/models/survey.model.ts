@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import db from '../utils/db';
 import { Survey } from '../types/survey.types';
 import { DB_SCHEMA } from '../config/db.config';
+import { Question } from '../types/question.types';
 
 // Создание новой анкеты
 export const createSurvey = async (
@@ -47,12 +48,32 @@ export const getSurveyById = async (id: string): Promise<Survey | null> => {
 // Получение анкет пользователя
 export const getSurveysByUser = async (userId: string): Promise<Survey[]> => {
   const query = `
-    SELECT * FROM ${DB_SCHEMA}.surveys 
-    WHERE created_by = $1::uuid 
+    SELECT * FROM ${DB_SCHEMA}.surveys
+    WHERE created_by = $1::uuid
     ORDER BY created_at DESC
   `;
   const result = await db.query(query, [userId]);
-  return result.rows as Survey[];
+  return result.rows.map(row => {
+    let structure: Question[] = [];
+    if (typeof row.structure === 'string') {
+      try {
+        structure = JSON.parse(row.structure);
+      } catch (e) {
+        console.warn('Failed to parse structure for survey', row.id, e);
+        structure = [];
+      }
+    } else {
+      structure = row.structure || [];
+    }
+
+    return {
+      ...row,
+      structure,
+      expires_at: row.expires_at ? new Date(row.expires_at) : undefined,
+      created_at: new Date(row.created_at),
+      updated_at: new Date(row.updated_at)
+    } as Survey;
+  });
 };
 
 // Обновление анкеты
@@ -93,7 +114,34 @@ export const updateSurvey = async (
   values.push(id, userId);
 
   const result = await db.query(query, values);
-  return result.rows.length > 0 ? result.rows[0] as Survey : null;
+  if (result.rows.length === 0) return null;
+const row = result.rows[0];
+
+// Parse JSON fields
+let structure: Question[] = [];
+if (typeof row.structure === 'string') {
+  try {
+    structure = JSON.parse(row.structure);
+  } catch (e) {
+    console.warn('Failed to parse structure for survey', row.id, e);
+    structure = [];
+  }
+} else {
+  structure = row.structure || [];
+}
+
+// Parse dates if needed (optional but recommended)
+const expires_at = row.expires_at ? new Date(row.expires_at) : undefined;
+const created_at = new Date(row.created_at);
+const updated_at = new Date(row.updated_at);
+
+return {
+  ...row,
+  structure,
+  expires_at,
+  created_at,
+  updated_at
+} as Survey;
 };
 
 // Удаление анкеты

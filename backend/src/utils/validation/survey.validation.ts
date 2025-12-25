@@ -131,18 +131,19 @@ const isValidPhone = (phone: string): boolean => {
 };
 
 const isValidDate = (dateString: string): boolean => {
-  // Проверка формата ГГГГ-ММ-ДД
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(dateString)) {
-    return false;
-  }
-  
+  // Принимаем либо YYYY-MM-DD, либо ISO-строку (в т.ч. с Z)
+  if (!dateString || typeof dateString !== 'string') return false;
   const date = new Date(dateString);
-  return date instanceof Date && !isNaN(date.getTime());
+  return !isNaN(date.getTime());
 };
 
 const isValidDateTime = (dateTimeString: string): boolean => {
-  // Проверка формата ISO или ГГГГ-ММ-ДДTЧЧ:ММ:СС
-  const date = new Date(dateTimeString);
-  return date instanceof Date && !isNaN(date.getTime());
+  if (!dateTimeString || typeof dateTimeString !== 'string') return false;
+  // Поддержка '2025-12-26T21:00' → дополняем до полного ISO
+  let normalized = dateTimeString;
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateTimeString)) {
+    normalized += ':00'; // добавляем секунды
+  }
+  const date = new Date(normalized);
+  return !isNaN(date.getTime());
 };

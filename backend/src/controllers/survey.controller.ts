@@ -138,12 +138,13 @@ export const updateSurvey = async (req: Request, res: Response) => {
     const userId = req.user!.sub;
     const { title, description, structure, expiresAt, isAnonymous } = req.body;
     
-    const updates: Partial<Survey> = {};
-    
+
+    const updates: Record<string, any> = {}; 
+
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
-    if (structure !== undefined) updates.structure = structure;
-    if (expiresAt !== undefined) updates.expires_at = expiresAt ? new Date(expiresAt) : undefined;
+    if (structure !== undefined) updates.structure = JSON.stringify(structure); // ✅ строка
+    if (expiresAt !== undefined) updates.expires_at = expiresAt ? new Date(expiresAt) : null;
     if (isAnonymous !== undefined) updates.is_anonymous = isAnonymous;
     
     const updatedSurvey = await updateSurveyModel(id, userId, updates);
@@ -156,7 +157,7 @@ export const updateSurvey = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Survey not found or access denied' });
     }
     
-    // Если структура изменилась, нужно перегенерировать QR-код
+    // Если структура изменилась — перегенерируем QR-код
     if (structure !== undefined) {
       const publicUrl = generatePublicUrl(updatedSurvey.id);
       const qrCode = await generateQRCode(publicUrl);

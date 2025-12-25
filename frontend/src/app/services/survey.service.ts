@@ -25,6 +25,11 @@ export class SurveyService {
     return this.http.get<Survey>(`${this.API_URL}/surveys/${id}`);
   }
 
+  // Публичный метод для получения анкеты (без аутентификации)
+  getPublicSurvey(id: string): Observable<Survey> {
+    return this.http.get<Survey>(`${this.API_URL}/surveys/f/${id}`);
+  }
+
   updateSurvey(id: string, surveyData: Partial<Survey>): Observable<Survey> {
     return this.http.patch<Survey>(`${this.API_URL}/surveys/${id}`, surveyData);
   }

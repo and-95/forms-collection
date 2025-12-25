@@ -1,54 +1,20 @@
-```gitignore
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.class
-*.exe
-*.dll
-*.so
-*.a
-*.out
-
+```
 # Dependencies
 node_modules/
-.angular
-backend/node_modules/
-venv/
-.venv/
-.env
-.env.local
-*.env.*
 
-# Compiled/Build artifacts
-# Build directories
+# Build artifacts
 dist/
 build/
 *.js.map
-*.tsbuildinfo
-# Logs
-# Logs and temp files
-target/
-*.log
-*.tmp
-*.swp
-
-# Editors
-.vscode/
-.idea/
+*.min.js
 
 # Environment
 .env
 .env.local
 *.env.*
-.env.*
 
 # Editors
-# Logs
-*.log
-
-@@ -26,85 +15,35 @@ build/
+.vscode/
 .idea/
 *.swp
 *.swo
@@ -56,90 +22,56 @@ target/
 # Logs
 *.log
 
-# Temp files
-*.tmp
-
-# Coverage
-coverage/
-htmlcov/
-*.coverage
-# Build artifacts
-dist/
-build/
-target/
-
-# Python (if any Python files exist in project)
-# Python
-# Python (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-@@ -45,38 +33,29 @@ venv/
-*.pyd
-.Python
-venv/
-.venv/
-.env/
-.venv.bak/
-pip-log.txt
-pip-delete-this-directory.txt
-*.so
-*.egg-info/
-.eggs/
-mypy_cache/
-pip-selfcheck.json
-env/
-ENV/
-# System files
+# OS
 .DS_Store
 Thumbs.db
 
 # Coverage
-# Build outputs
-dist/
-build/
-target/
 coverage/
 htmlcov/
 .coverage
 
-# MyPy
-# Python specific
-*.pyc
+# Python (if present)
 __pycache__/
-.mypy_cache/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# PyTest
-.pytest_cache/
+# Testing
+.nyc_output/
+coverage/
+junit.xml
+*.gcov
+*.lcov
 
-# OS
-# Node.js
-# Node.js specific
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Gradle
-.gradle/
-*.out
-*.exe
-*.dll
-*.so
-*.a
-*.obj
-
-# macOS
-# OS generated files
-.DS_Store
-Thumbs.db
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
 
 # Compressed files
-# Compression
 *.zip
 *.gz
 *.tar
-@@ -117,13 +58,22 @@ Thumbs.db
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
 *.Z
 *.lz
 *.lzo
@@ -147,37 +79,4 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-```
-```
-# Windows
-
-# OS generated files
-.DS_Store
-Thumbs.db
-```
-```
-
-# Testing
-.pytest_cache/
-.mypy_cache/
-.coverage
-# Compiled JS/TS
-*.js.map
-*.ts.map
-
-# Gradle
-.gradle/
-target/
-# Logs
-*.log
-
-# Other common ignores
-*.swp
-*.swo
-*~
-```
-# Environment variables
-.env
-.env.local
-.env.*
 ```

@@ -10,7 +10,8 @@ import {
   toggleSurveyActive,
   submitSurvey,
   getSurveyResponses,
-  getSurveyStats
+  getSurveyStats,
+  getPublicSurvey
 } from '../controllers/survey.controller';
 import { authGuard } from '../middleware/authGuard';
 import { roleGuard } from '../middleware/roleGuard';
@@ -26,7 +27,8 @@ router.patch('/:id', authGuard, roleGuard('admin', 'superadmin'), updateSurvey);
 router.delete('/:id', authGuard, roleGuard('admin', 'superadmin'), deleteSurvey);
 router.post('/:id/activate', authGuard, roleGuard('admin', 'superadmin'), toggleSurveyActive);
 
-// Публичный эндпоинт для отправки ответов
+// Публичный эндпоинт для получения и отправки анкет
+router.get('/f/:id', getPublicSurvey); // Публичный доступ к анкете
 router.post('/:id/submit', rateLimiter, submitSurvey);
 
 // Получение ответов и статистики (доступно только админу анкеты или суперадмину)

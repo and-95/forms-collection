@@ -259,6 +259,42 @@ export const toggleSurveyActive = async (req: Request, res: Response) => {
   }
 };
 
+export const getPublicSurvey = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const survey = await getSurveyById(id);
+    
+    if (!survey) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
+    
+    if (!survey.is_active) {
+      return res.status(400).json({ error: 'Survey is not active' });
+    }
+    
+    if (survey.expires_at && new Date() > new Date(survey.expires_at)) {
+      return res.status(400).json({ error: 'Survey has expired' });
+    }
+    
+    // Возвращаем только необходимые поля для публичного доступа
+    res.status(200).json({
+      id: survey.id,
+      title: survey.title,
+      description: survey.description,
+      structure: survey.structure,
+      isAnonymous: survey.is_anonymous,
+      expiresAt: survey.expires_at,
+      isActive: survey.is_active,
+      qrCode: survey.qr_code, // Включаем QR-код
+      publicUrl: generatePublicUrl(survey.id) // Включаем публичный URL
+    });
+  } catch (error) {
+    console.error('Error getting public survey:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const submitSurvey = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

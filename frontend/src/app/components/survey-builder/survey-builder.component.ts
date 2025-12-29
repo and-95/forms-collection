@@ -108,7 +108,6 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
           <div class="questions-section">
             <div class="section-header">
               <h2>{{ i18n.t('survey.builder.questions.title') }}</h2>
-              <button mat-raised-button color="accent" (click)="addQuestion()">{{ i18n.t('survey.builder.questions.addQuestion') }}</button>
             </div>
             
             <div 
@@ -252,6 +251,9 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
                 </mat-card>
               </div>
             </div>
+            <div class="color-button">
+             <button matButton="filled"  (click)="addQuestion()">{{ i18n.t('survey.builder.questions.addQuestion') }}</button>
+            </div>
           </div>
         </form>
       </div>
@@ -264,6 +266,14 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
       max-width: 1200px;
       margin: 0 auto;
     }
+
+.color-button {
+  display: flex;
+  justify-content: center; /* ← центрирует содержимое по горизонтали */
+  margin-top: 20px;
+  /* остальное по желанию */
+}
+
 
     .loader {
       display: flex;

@@ -39,13 +39,6 @@ import { MatSliderModule } from '@angular/material/slider';
       <div class="survey-header">
         <h1>{{ survey?.title }}</h1>
         <p>{{ survey?.description }}</p>
-        <!-- Отображение QR-кода -->
-        <div class="qr-container" *ngIf="survey?.qr_code">
-          <div class="qr-code">
-            <img [src]="survey?.qr_code" alt="QR Code" />
-            <p>Сканируйте QR-код для доступа к анкете</p>
-          </div>
-        </div>
       </div>
       
       <form 
@@ -207,36 +200,6 @@ import { MatSliderModule } from '@angular/material/slider';
     
     .survey-header p {
       margin: 0;
-      color: #666;
-    }
-    
-    .qr-container {
-      margin: 20px 0;
-    }
-    
-    .qr-code {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .qr-code img {
-      max-width: 200px;
-      height: auto;
-      margin-bottom: 10px;
-      border: 1px solid #eee;
-      padding: 10px;
-      background: white;
-    }
-    
-    .qr-code p {
-      margin: 0;
-      font-size: 14px;
       color: #666;
     }
     

@@ -60,6 +60,7 @@ target/
 
 @@ -26,85 +15,35 @@ build/
 # Editor/IDE
+# Editor files
 .vscode/
 .idea/
 *.swp
@@ -88,6 +89,7 @@ target/
 # Python
 # Python (if applicable)
 # Python (if present)
+# Python artifacts (if any Python files exist in project)
 __pycache__/
 *.pyc
 *.pyo
@@ -119,6 +121,7 @@ build/
 target/
 # Testing
 .nyc_output/
+# Coverage reports
 coverage/
 htmlcov/
 .tox/
@@ -128,10 +131,12 @@ htmlcov/
 # Python specific
 *.pyc
 __pycache__/
+# MyPy cache
 .mypy_cache/
 
 # PyTest
 .nox/
+# Pytest cache
 .pytest_cache/
 .mypy_cache/
 

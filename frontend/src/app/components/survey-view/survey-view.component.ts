@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 import { SurveyService } from '../../services/survey.service';
 import { Survey } from '../../models/survey.model';
 import { AuthService } from '../../services/auth.service';
@@ -20,6 +21,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatCardModule,
     MatIconModule,
     MatTooltipModule,
+    MatDividerModule,
     RouterModule,
     MatSnackBarModule
 
@@ -95,6 +97,28 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
                   <div class="param">Макс: {{ question.max || 5 }}</div>
                   <div class="param">Шаг: {{ question.step || 1 }}</div>
                 </div>
+              </div>
+            </div>
+          </mat-card-content>
+          
+          <!-- QR Code Section -->
+          <mat-card-content class="qr-section" *ngIf="survey?.qr_code">
+            <mat-divider />
+            <h3>QR-код для анкеты</h3>
+            <div class="qr-container">
+              <div class="qr-code" #qrCodeContainer>
+                <img [src]="survey?.qr_code" alt="QR Code" />
+                <p>Сканируйте QR-код для доступа к анкете</p>
+              </div>
+              <div class="qr-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary"
+                  (click)="copyQRCodeAsImage()"
+                  matTooltip="Скопировать QR-код как изображение">
+                  <mat-icon>image</mat-icon>
+                  Скопировать изображение
+                </button>
               </div>
             </div>
           </mat-card-content>
@@ -272,6 +296,52 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
       justify-content: flex-end;
     }
     
+    .qr-section {
+      margin-top: 20px;
+    }
+    
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background-color: #fafafa;
+      border-radius: 8px;
+    }
+    
+    .qr-code {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .qr-code img {
+      max-width: 200px;
+      height: auto;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      padding: 10px;
+      background: white;
+    }
+    
+    .qr-code p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .qr-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    
     @media (max-width: 768px) {
       .survey-meta {
         flex-direction: column;
@@ -296,6 +366,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 })
 export class SurveyViewComponent implements OnInit {
   survey: Survey | null = null;
+  @ViewChild('qrCodeContainer', { static: false }) qrCodeContainer!: ElementRef;
 
   constructor(
     private surveyService: SurveyService,
@@ -417,6 +488,60 @@ private fallbackCopyTextToClipboard(text: string, successMsg: string, errorMsg: 
           this.snackBar.open('Ошибка при удалении анкеты', 'Закрыть', { duration: 3000 });
         }
       });
+    }
+  }
+
+  async copyQRCodeAsImage(): Promise<void> {
+    if (!this.survey?.qr_code) {
+      this.snackBar.open('QR-код недоступен', 'Закрыть', { duration: 2000 });
+      return;
+    }
+
+    try {
+      // Create a temporary image element
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = this.survey.qr_code;
+
+      img.onload = () => {
+        // Create a canvas to convert the image to blob
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          this.snackBar.open('Не удалось скопировать изображение', 'Закрыть', { duration: 2000 });
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            this.snackBar.open('Не удалось скопировать изображение', 'Закрыть', { duration: 2000 });
+            return;
+          }
+
+          // Create ClipboardItem from blob
+          const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+
+          // Write to clipboard
+          navigator.clipboard.write([clipboardItem]).then(() => {
+            this.snackBar.open('QR-код скопирован как изображение', 'Закрыть', { duration: 2000 });
+          }).catch(err => {
+            console.error('Failed to copy image to clipboard:', err);
+            this.snackBar.open('Не удалось скопировать изображение', 'Закрыть', { duration: 2000 });
+          });
+        }, 'image/png');
+      };
+
+      img.onerror = () => {
+        this.snackBar.open('Не удалось загрузить QR-код', 'Закрыть', { duration: 2000 });
+      };
+    } catch (error) {
+      console.error('Error copying QR code as image:', error);
+      this.snackBar.open('Ошибка при копировании изображения', 'Закрыть', { duration: 2000 });
     }
   }
 }

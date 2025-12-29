@@ -29,22 +29,22 @@ export interface Survey {
   title: string;
   description?: string;
   structure: Question[];
-  expiresAt?: string;     // null = forever
-  isAnonymous: boolean;
-  qrCode?: string;        // base64
-  isActive: boolean;
-  createdBy?: string;
-  createdAt: string;
-  updatedAt: string;
+  expires_at?: string;     // null = forever
+  is_anonymous: boolean;
+  qr_code?: string;        // base64
+  is_active: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
   responseCount?: number;
 }
 
 export interface SurveyResponse {
   id: string;
-  surveyId: string;
+  survey_id: string;
   data: Record<string, any>; // {q1: "text", q2: ["opt1", "opt2"], ...}
   ip?: string;               // null if is_anonymous
-  submittedAt: string;
+  submitted_at: string;
 }
 
 export interface SurveySubmission {
@@ -55,8 +55,8 @@ export interface User {
   id: string;
   login: string;
   role: 'admin' | 'superadmin';
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AuthResponse {
@@ -67,4 +67,24 @@ export interface AuthResponse {
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface SurveyResponsesResponse {
+  surveyId: string;
+  responses: SurveyResponseRaw[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// "сырой" ответ от бэкенда
+export interface SurveyResponseRaw {
+  id: string;
+  survey_id: string;
+  data: Record<string, any>;
+  ip?: string | null;
+  submitted_at: string; // ← snake_case
 }

@@ -41,12 +41,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
             </div>
             <div class="stat-item">
               <mat-icon color="accent">calendar_today</mat-icon>
-              <div class="stat-value">{{ survey.createdAt | date:'dd.MM.yyyy' }}</div>
+              <div class="stat-value">{{ survey.created_at | date:'dd.MM.yyyy' }}</div>
               <div class="stat-label">Создана</div>
             </div>
-            <div class="stat-item" *ngIf="survey.expiresAt">
+            <div class="stat-item" *ngIf="survey.expires_at">
               <mat-icon color="warn">schedule</mat-icon>
-              <div class="stat-value">{{ survey.expiresAt | date:'dd.MM.yyyy HH:mm' }}</div>
+              <div class="stat-value">{{ survey.expires_at | date:'dd.MM.yyyy HH:mm' }}</div>
               <div class="stat-label">Истекает</div>
             </div>
           </div>
@@ -141,7 +141,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
                 <div class="responses-overview">
                   <div class="response-item" *ngFor="let response of responses; trackBy: trackByResponseId">
                     <span>Ответ #{{ responses.indexOf(response) + 1 }}</span>
-                    <span>{{ response.submittedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                    <span>{{ response.submitted_at | date:'dd.MM.yyyy HH:mm' }}</span>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -122,16 +122,44 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
   loading = signal(false);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
+  constructor(private fb: FormBuilder) {
     this.loginForm = this.fb.group({
       login: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    // Эффект для автоматического редиректа при уже авторизованном пользователе
+effect(() => {
+  const checked = this.authService.authChecked();
+  const isAuthenticated = this.authService.isAuthenticated();
+  const user = this.authService.currentUser();
+
+  if (checked && isAuthenticated && user) {
+    this.redirectByRole(user.role);
+  }
+});
+  }
+
+  ngOnInit() {
+    // Дополнительно: можно явно подождать, пока не завершится первая проверка
+    // Но effect выше уже обрабатывает это реактивно
+
+    // Опционально: если вы хотите гарантировать, что проверка прошла, можно использовать флаг в сервисе,
+    // но в текущей реализации effect + сигналы — достаточно.
+  }
+
+  private redirectByRole(role: string): void {
+    if (role === 'superadmin') {
+      this.router.navigate(['/surveys']);
+    } else if (role === 'admin') {
+      this.router.navigate(['/dashboard']);
+    } else {
+      // fallback
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   onSubmit(): void {
@@ -144,14 +172,8 @@ export class LoginComponent {
       this.authService.login(login, password).subscribe({
         next: (response) => {
           this.loading.set(false);
-          // User data is already set in the auth service after successful login
-          // The user is already authenticated at this point
-          
-          if (response.user?.role === 'superadmin') {
-            this.router.navigate(['/admin/users']);
-          } else {
-            this.router.navigate(['/dashboard']); // Redirect to dashboard as the main page after login
-          }
+          // Редирект уже обрабатывается в effect, но на случай успеха логина — явно вызовем
+          this.redirectByRole(response.user.role);
         },
         error: (error) => {
           this.loading.set(false);
@@ -159,7 +181,6 @@ export class LoginComponent {
         }
       });
     } else {
-      // Отмечаем поля как touched для отображения ошибок
       this.loginForm.markAllAsTouched();
     }
   }

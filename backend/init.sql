@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS surveys (
   expires_at TIMESTAMPTZ,    -- NULL = бессрочно
   is_active BOOLEAN NOT NULL DEFAULT true,
   is_anonymous BOOLEAN NOT NULL DEFAULT false,
-  qr_code TEXT,               -- base64 PNG
+  qrCode TEXT,               -- base64 PNG
   created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

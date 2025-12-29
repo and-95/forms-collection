@@ -45,11 +45,11 @@ import { User, ChangePasswordRequest } from '../../models/survey.model';
             </div>
             <div class="info-row">
               <label>Дата создания:</label>
-              <span>{{ user?.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+              <span>{{ user?.created_at | date:'dd.MM.yyyy HH:mm' }}</span>
             </div>
             <div class="info-row">
               <label>Дата последнего обновления:</label>
-              <span>{{ user?.updatedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+              <span>{{ user?.updated_at | date:'dd.MM.yyyy HH:mm' }}</span>
             </div>
           </div>
         </mat-card-content>

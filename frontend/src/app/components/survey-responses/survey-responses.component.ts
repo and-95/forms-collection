@@ -205,10 +205,10 @@ export class SurveyResponsesComponent implements OnInit {
     });
   }
 
-  private loadResponses(surveyId: string): void {
+  private loadResponses(survey_id: string): void {
     this.loading = true;
     
-    this.surveyService.getSurveyResponses(surveyId, {
+    this.surveyService.getSurveyResponses(survey_id, {
       page: this.pageIndex,
       limit: this.pageSize,
       search: this.filterValue,
@@ -230,7 +230,7 @@ export class SurveyResponsesComponent implements OnInit {
 
   private generateColumns(): void {
     // Определяем колонки на основе структуры анкеты
-    this.allColumns = ['submittedAt'];
+    this.allColumns = ['submitted_at'];
     
     if (this.survey) {
       this.survey.structure.forEach((question: Question) => {
@@ -241,34 +241,89 @@ export class SurveyResponsesComponent implements OnInit {
     this.displayedColumns = [...this.allColumns];
   }
 
-  private updateDisplayedResponses(): void {
-    // Преобразуем ответы в формат, подходящий для отображения в таблице
-    this.displayedResponses = this.responses.map(response => {
-      const row: any = {
-        submittedAt: new Date(response.submittedAt).toLocaleString()
-      };
-      
-      if (this.survey) {
-        // Добавляем ответы на вопросы
-        this.survey.structure.forEach((question: Question) => {
-          const answer = response.data[question.id];
-          
-          if (Array.isArray(answer)) {
-            // Для чекбоксов - объединяем ответы
-            row[question.label] = answer.join(', ');
-          } else if (typeof answer === 'object' && answer !== null) {
-            // Обработка других типов объектов
-            row[question.label] = JSON.stringify(answer);
-          } else {
-            // Для остальных типов
-            row[question.label] = answer || 'Не отвечено';
+private updateDisplayedResponses(): void {
+  this.displayedResponses = this.responses.map(response => {
+    // 🔹 Защита от Invalid Date
+    const submittedAtRaw = response.submittedAt;
+    const submittedAtDate = submittedAtRaw ? new Date(submittedAtRaw) : null;
+    const submittedAtDisplay = submittedAtDate && !isNaN(submittedAtDate.getTime())
+      ? submittedAtDate.toLocaleString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : '—';
+
+    const row: any = {
+      submittedAt: submittedAtDisplay
+    };
+
+    if (this.survey) {
+      this.survey.structure.forEach((question: Question) => {
+        const answer = response.data[question.id];
+
+        let displayValue: string;
+
+        if (answer === undefined || answer === null || answer === '') {
+          displayValue = '—';
+        } else {
+          switch (question.type) {
+            case 'radio':
+            case 'select':
+              const selectedOption = question.options?.find(opt => opt.id === answer);
+              displayValue = selectedOption?.label ?? `ID: ${answer}`;
+              break;
+
+            case 'checkbox':
+              if (Array.isArray(answer)) {
+                const labels = answer
+                  .map(id => question.options?.find(opt => opt.id === id)?.label)
+                  .filter(Boolean) as string[];
+                displayValue = labels.length > 0 ? labels.join(', ') : `IDs: ${answer.join(', ')}`;
+              } else {
+                displayValue = `⚠️ Ожидался массив: ${typeof answer}`;
+              }
+              break;
+
+            case 'date':
+              const dateVal = new Date(answer);
+              displayValue = dateVal && !isNaN(dateVal.getTime())
+                ? dateVal.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                : `⚠️ Неверная дата: ${answer}`;
+              break;
+
+            case 'datetime':
+              const dtVal = new Date(answer);
+              displayValue = dtVal && !isNaN(dtVal.getTime())
+                ? dtVal.toLocaleString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : `⚠️ Неверная дата/время: ${answer}`;
+              break;
+
+            case 'scale':
+              displayValue = typeof answer === 'number' ? `${answer}` : `${answer}`;
+              break;
+
+            default:
+              // text, email, phone и т.д.
+              displayValue = String(answer);
           }
-        });
-      }
-      
-      return row;
-    });
-  }
+        }
+
+        row[question.label] = displayValue;
+      });
+    }
+
+    return row;
+  });
+}
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;

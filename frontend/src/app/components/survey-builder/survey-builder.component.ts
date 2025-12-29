@@ -86,21 +86,21 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
             </mat-form-field>
             
             <div class="survey-options">
-              <mat-slide-toggle formControlName="isAnonymous">
-                {{ i18n.t('survey.builder.form.isAnonymousLabel') }}
-                <mat-hint>{{ i18n.t('survey.builder.form.isAnonymousHelp') }}</mat-hint>
+              <mat-slide-toggle formControlName="is_anonymous">
+                {{ i18n.t('survey.builder.form.is_anonymousLabel') }}
+                <mat-hint>{{ i18n.t('survey.builder.form.is_anonymousHelp') }}</mat-hint>
               </mat-slide-toggle>
               
               <mat-form-field class="expires-field">
-                <mat-label>{{ i18n.t('survey.builder.form.expiresAtLabel') }}</mat-label>
+                <mat-label>{{ i18n.t('survey.builder.form.expires_atLabel') }}</mat-label>
                 <input 
                   matInput 
                   [matDatepicker]="picker" 
-                  formControlName="expiresAt"
-                  placeholder="{{ i18n.t('survey.builder.form.expiresAtPlaceholder') }}">
+                  formControlName="expires_at"
+                  placeholder="{{ i18n.t('survey.builder.form.expires_atPlaceholder') }}">
                 <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                 <mat-datepicker #picker></mat-datepicker>
-                <mat-hint>{{ i18n.t('survey.builder.form.expiresAtHelp') }}</mat-hint>
+                <mat-hint>{{ i18n.t('survey.builder.form.expires_atHelp') }}</mat-hint>
               </mat-form-field>
             </div>
           </div>
@@ -413,7 +413,7 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
 export class SurveyBuilderComponent implements OnInit, OnDestroy {
   surveyForm: FormGroup;
   isEditMode = false;
-  surveyId: string | null = null;
+  survey_id: string | null = null;
   currentSurvey: Survey | null = null;
   private translationSub?: Subscription;
 
@@ -441,7 +441,7 @@ export class SurveyBuilderComponent implements OnInit, OnDestroy {
       const id = params.get('id');
       if (id) {
         this.isEditMode = true;
-        this.surveyId = id;
+        this.survey_id = id;
         this.loadSurvey(id);
       }
     });
@@ -455,8 +455,8 @@ export class SurveyBuilderComponent implements OnInit, OnDestroy {
     return this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       description: ['', Validators.maxLength(500)],
-      isAnonymous: [false],
-      expiresAt: [null],
+      is_anonymous: [false],
+      expires_at: [null],
       questions: this.fb.array([])
     });
   }
@@ -485,8 +485,8 @@ export class SurveyBuilderComponent implements OnInit, OnDestroy {
     this.surveyForm.patchValue({
       title: survey.title,
       description: survey.description || '',
-      isAnonymous: survey.isAnonymous,
-      expiresAt: survey.expiresAt || null
+      is_anonymous: survey.is_anonymous,
+      expires_at: survey.expires_at || null
     });
 
     this.questionsFormArray.clear();
@@ -611,17 +611,17 @@ export class SurveyBuilderComponent implements OnInit, OnDestroy {
   saveSurvey(): void {
     if (this.surveyForm.valid) {
       const formData = this.surveyForm.value;
-      const surveyData: Omit<Survey, 'id' | 'createdBy' | 'createdAt' | 'updatedAt'> = {
+      const surveyData: Omit<Survey, 'id' | 'created_by' | 'created_at' | 'updated_at'> = {
         title: formData.title,
         description: formData.description,
         structure: this.convertFormToStructure(formData.questions),
-        expiresAt: formData.expiresAt || null,
-        isAnonymous: formData.isAnonymous,
-        isActive: true
+        expires_at: formData.expires_at || null,
+        is_anonymous: formData.is_anonymous,
+        is_active: true
       };
 
-      const action$ = this.isEditMode && this.surveyId
-        ? this.surveyService.updateSurvey(this.surveyId, surveyData)
+      const action$ = this.isEditMode && this.survey_id
+        ? this.surveyService.updateSurvey(this.survey_id, surveyData)
         : this.surveyService.createSurvey(surveyData);
 
       action$.subscribe({

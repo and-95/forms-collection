@@ -131,14 +131,14 @@ import { AuthService } from '../../services/auth.service';
                 </td>
               </ng-container>
               
-              <ng-container matColumnDef="createdAt">
+              <ng-container matColumnDef="created_at">
                 <th mat-header-cell *matHeaderCellDef>Дата создания</th>
-                <td mat-cell *matCellDef="let user">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td mat-cell *matCellDef="let user">{{ user.created_at | date:'dd.MM.yyyy HH:mm' }}</td>
               </ng-container>
               
-              <ng-container matColumnDef="updatedAt">
+              <ng-container matColumnDef="updated_at">
                 <th mat-header-cell *matHeaderCellDef>Дата обновления</th>
-                <td mat-cell *matCellDef="let user">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td mat-cell *matCellDef="let user">{{ user.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
               </ng-container>
               
               <ng-container matColumnDef="actions" *ngIf="authService.hasRole('superadmin')">
@@ -242,7 +242,7 @@ import { AuthService } from '../../services/auth.service';
 export class UserManagementComponent implements OnInit {
   users: User[] = [];
   userForm: FormGroup;
-  displayedColumns: string[] = ['login', 'role', 'createdAt', 'updatedAt'];
+  displayedColumns: string[] = ['login', 'role', 'created_at', 'updated_at'];
   currentUserId: string | null = null;
 
   constructor(

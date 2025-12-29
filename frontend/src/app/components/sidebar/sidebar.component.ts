@@ -24,6 +24,7 @@ interface NavItem {
             <a 
               [routerLink]="item.route" 
               routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
               class="nav-link"
               [class.hidden]="!hasRole(item.roles)">
               {{ item.label }}

@@ -8,6 +8,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SurveyService } from '../../services/survey.service';
 import { Survey } from '../../models/survey.model';
 import { AuthService } from '../../services/auth.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
 
 @Component({
   selector: 'app-survey-view',
@@ -18,7 +20,9 @@ import { AuthService } from '../../services/auth.service';
     MatCardModule,
     MatIconModule,
     MatTooltipModule,
-    RouterModule
+    RouterModule,
+    MatSnackBarModule
+
   ],
   template: `
     <div class="survey-view-container">
@@ -41,17 +45,17 @@ import { AuthService } from '../../services/auth.service';
             <div class="survey-meta">
               <div class="meta-item">
                 <mat-icon>visibility</mat-icon>
-                <span>{{ survey.isActive ? 'Активна' : 'Неактивна' }}</span>
+                <span>{{ survey.is_active ? 'Активна' : 'Неактивна' }}</span>
               </div>
               
-              <div class="meta-item" *ngIf="survey.expiresAt">
+              <div class="meta-item" *ngIf="survey.expires_at">
                 <mat-icon>schedule</mat-icon>
-                <span>{{ survey.expiresAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                <span>{{ survey.expires_at | date:'dd.MM.yyyy HH:mm' }}</span>
               </div>
               
               <div class="meta-item">
                 <mat-icon>lock</mat-icon>
-                <span>{{ survey.isAnonymous ? 'Анонимная' : 'Не анонимная' }}</span>
+                <span>{{ survey.is_anonymous ? 'Анонимная' : 'Не анонимная' }}</span>
               </div>
             </div>
             
@@ -287,7 +291,8 @@ export class SurveyViewComponent implements OnInit {
     private surveyService: SurveyService,
     private route: ActivatedRoute,
     private router: Router,
-    public authService: AuthService
+    public authService: AuthService,
+  private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -336,13 +341,49 @@ export class SurveyViewComponent implements OnInit {
     return question.id;
   }
 
-  copySurveyLink(surveyId: string): void {
-    const link = `${window.location.origin}/f/${surveyId}`;
-    navigator.clipboard.writeText(link).then(() => {
-      // Можно добавить уведомление об успешном копировании
-      console.log('Ссылка скопирована в буфер обмена');
-    });
+copySurveyLink(surveyId: string): void {
+  const url = `${window.location.origin}/f/${surveyId}`;
+  const successMessage = 'Ссылка скопирована в буфер обмена';
+  const errorMessage = 'Не удалось скопировать ссылку. Попробуйте вручную.';
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        this.snackBar.open(successMessage, 'Закрыть', { duration: 2000 });
+      })
+      .catch(err => {
+        console.warn('Clipboard API failed, falling back to legacy method', err);
+        this.fallbackCopyTextToClipboard(url, successMessage, errorMessage);
+      });
+  } else {
+    this.fallbackCopyTextToClipboard(url, successMessage, errorMessage);
   }
+}
+
+private fallbackCopyTextToClipboard(text: string, successMsg: string, errorMsg: string): void {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed'; // не виден пользователю
+  textarea.style.left = '-9999px';
+  textarea.style.top = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    const success = document.execCommand('copy');
+    if (success) {
+      this.snackBar.open(successMsg, 'Закрыть', { duration: 2000 });
+    } else {
+      this.snackBar.open(errorMsg, 'Закрыть', { duration: 4000 });
+    }
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+    this.snackBar.open(errorMsg, 'Закрыть', { duration: 4000 });
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
 
   canEdit(): boolean {
     if (!this.survey || !this.authService.currentUser()) {
@@ -352,6 +393,6 @@ export class SurveyViewComponent implements OnInit {
     const user = this.authService.currentUser();
     // Администратор может редактировать свои анкеты, суперадмин может редактировать любые
     return user?.role === 'superadmin' || 
-           (user?.role === 'admin' && this.survey.createdBy === user.id);
+           (user?.role === 'admin' && this.survey.created_by === user.id);
   }
 }

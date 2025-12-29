@@ -39,7 +39,7 @@ export const initializeSuperAdmin = async () => {
       userId: superAdmin.id, 
       login: superAdmin.login, 
       role: superAdmin.role,
-      createdBy: 'system'
+      created_by: 'system'
     }, superAdmin.id, 'user');
     
   } catch (error) {

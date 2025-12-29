@@ -3,17 +3,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Survey, SurveyResponse, SurveySubmission, User } from '../models/survey.model';
+import { map } from 'rxjs/operators'; // ← добавь вверху файла, если ещё не импортировано
 
 @Injectable({
   providedIn: 'root'
 })
 export class SurveyService {
-  private readonly API_URL = 'http://localhost:3000/api/v1';
+  private readonly API_URL = 'http://172.16.153.98:3000/api/v1';
 
   constructor(private http: HttpClient) { }
 
   // Методы для работы с анкетами (доступны администратору и суперадминистратору)
-  createSurvey(surveyData: Omit<Survey, 'id' | 'createdBy' | 'createdAt' | 'updatedAt'>): Observable<Survey> {
+  createSurvey(surveyData: Omit<Survey, 'id' | 'created_by' | 'created_at' | 'updated_at'>): Observable<Survey> {
     return this.http.post<Survey>(`${this.API_URL}/surveys`, surveyData);
   }
 
@@ -39,52 +40,71 @@ export class SurveyService {
   }
 
   // Метод для публичной отправки анкеты
-  submitSurvey(surveyId: string, submission: SurveySubmission): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.API_URL}/surveys/${surveyId}/submit`, submission);
+  submitSurvey(survey_id: string, submission: SurveySubmission): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API_URL}/surveys/${survey_id}/submit`, submission);
   }
 
   // Методы для получения ответов и статистики
-  getSurveyResponses(surveyId: string, params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    dateFrom?: string;
-    dateTo?: string;
-  }): Observable<{ data: SurveyResponse[]; total: number }> {
-    let queryParams = '';
-    if (params) {
-      const searchParams = new URLSearchParams();
-      if (params.page !== undefined) searchParams.set('page', params.page.toString());
-      if (params.limit !== undefined) searchParams.set('limit', params.limit.toString());
-      if (params.search) searchParams.set('search', params.search);
-      if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
-      if (params.dateTo) searchParams.set('dateTo', params.dateTo);
-      queryParams = '?' + searchParams.toString();
-    }
-    return this.http.get<{ data: SurveyResponse[]; total: number }>(`${this.API_URL}/surveys/${surveyId}/responses${queryParams}`);
+getSurveyResponses(surveyId: string, params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}): Observable<{ data: SurveyResponse[]; total: number }> {
+  let queryParams = '';
+  if (params) {
+    const searchParams = new URLSearchParams();
+    // ⚠️ Бэкенд ожидает page=1 (не page=0), иначе offset = (0-1)*20 = -20 → ошибка или пусто
+    const page = params.page ?? 1;
+    searchParams.set('page', page.toString());
+    if (params.limit !== undefined) searchParams.set('limit', params.limit.toString());
+    if (params.search) searchParams.set('search', params.search);
+    if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
+    if (params.dateTo) searchParams.set('dateTo', params.dateTo);
+    queryParams = '?' + searchParams.toString();
   }
 
-  getSurveyStats(surveyId: string): Observable<any> {
-    return this.http.get(`${this.API_URL}/surveys/${surveyId}/stats`);
+  return this.http.get<any>(`${this.API_URL}/surveys/${surveyId}/responses${queryParams}`).pipe(
+    map(response => {
+      // Маппинг из snake_case → camelCase + правильная структура
+      const mappedResponses: SurveyResponse[] = (response.responses || []).map((r: any) => ({
+        id: r.id,
+        surveyId: r.survey_id,
+        data: r.data || {},
+        ip: r.ip ?? undefined,
+        submittedAt: r.submitted_at ?? ''
+      }));
+
+      return {
+        data: mappedResponses,
+        total: response.pagination?.total ?? mappedResponses.length
+      };
+    })
+  );
+}
+
+  getSurveyStats(survey_id: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/surveys/${survey_id}/stats`);
   }
 
   // Метод для генерации QR-кода
-  generateQRCode(text: string): Promise<string> {
-    // Импортируем qrcode библиотеку динамически
-    return import('qrcode').then((QRCode) => {
-      return QRCode.toDataURL(text);
+  generateqr_code(text: string): Promise<string> {
+    // Импортируем qr_code библиотеку динамически
+    return import('qrCode').then((qr_code) => {
+      return qr_code.toDataURL(text);
     });
   }
 
   // Метод для генерации QR-кода для публичной ссылки на анкету
-  generateSurveyQRCode(surveyId: string): Promise<string> {
-    const publicUrl = `${window.location.origin}/f/${surveyId}`;
+  generateSurveyqr_code(survey_id: string): Promise<string> {
+    const publicUrl = `${window.location.origin}/f/${survey_id}`;
     console.log()
-    return this.generateQRCode(publicUrl);
+    return this.generateqr_code(publicUrl);
   }
 
   // Методы для управления пользователями (доступны только суперадминистратору)
-  createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Observable<User> {
+  createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Observable<User> {
     return this.http.post<User>(`${this.API_URL}/admin/users`, userData);
   }
 

@@ -1,3 +1,5 @@
+//auth.service.ts
+
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, throwError } from 'rxjs';
@@ -8,30 +10,36 @@ import { AuthResponse, User, ChangePasswordRequest } from '../models/survey.mode
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:3000/api/v1';
+  private readonly API_URL = 'http://172.16.153.98:3000/api/v1';
   
   currentUser = signal<User | null>(null);
   isAuthenticated = signal(false);
+  authChecked = signal(false); // false — проверка ещё не прошла
 
   constructor(private http: HttpClient) {
     // Check if user is already authenticated by trying to get user info
     this.checkAuthStatus();
   }
 
-  private checkAuthStatus(): void {
-    // Try to get current user to check if authenticated
-    this.getCurrentUser().subscribe({
-      next: (user) => {
-        this.currentUser.set(user);
-        this.isAuthenticated.set(true);
-      },
-      error: (error) => {
-        // User is not authenticated
-        this.currentUser.set(null);
-        this.isAuthenticated.set(false);
-      }
-    });
-  }
+  // ngOnInit(){
+  //   this.checkAuthStatus();
+
+  // } 
+
+private checkAuthStatus(): void {
+  this.getCurrentUser().subscribe({
+    next: (user) => {
+      this.currentUser.set(user);
+      this.isAuthenticated.set(true);
+      this.authChecked.set(true); // ✅
+    },
+    error: () => {
+      this.currentUser.set(null);
+      this.isAuthenticated.set(false);
+      this.authChecked.set(true); // ✅ даже при ошибке — проверка завершена
+    }
+  });
+}
 
   login(login: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, { login, password })

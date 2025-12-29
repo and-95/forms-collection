@@ -7,7 +7,7 @@ import { Question } from '../types/question.types';
 
 // Создание нового ответа
 export const createResponse = async (
-  surveyId: string,
+  survey_id: string,
   data: any,
   ip: string | null
 ): Promise<any> => {
@@ -16,33 +16,38 @@ export const createResponse = async (
     VALUES ($1, $2, $3)
     RETURNING *
   `;
-  const values = [surveyId, JSON.stringify(data), ip];
+  const values = [survey_id, JSON.stringify(data), ip];
   
   const result = await db.query(query, values);
   return result.rows[0];
 };
 
 // Получение ответов по ID анкеты
-export const getResponsesBySurveyId = async (surveyId: string, limit: number = 20, offset: number = 0): Promise<any[]> => {
+export const getResponsesBySurveyId = async (survey_id: string, limit: number = 20, offset: number = 0): Promise<any[]> => {
   const query = `
-    SELECT * FROM ${DB_SCHEMA}.responses 
-    WHERE survey_id = $1 
-    ORDER BY submitted_at DESC 
+    SELECT * FROM ${DB_SCHEMA}.responses
+    WHERE survey_id = $1
+    ORDER BY submitted_at DESC
     LIMIT $2 OFFSET $3
   `;
-  const result = await db.query(query, [surveyId, limit, offset]);
-  return result.rows;
+  const result = await db.query(query, [survey_id, limit, offset]);
+
+  return result.rows.map(row => ({
+    ...row,
+    data: typeof row.data === 'string' ? JSON.parse(row.data) : row.data,
+    submitted_at: row.submitted_at ? new Date(row.submitted_at) : undefined
+  }));
 };
 
 // Получение количества ответов по ID анкеты
-export const getResponseCountBySurveyId = async (surveyId: string): Promise<number> => {
+export const getResponseCountBySurveyId = async (survey_id: string): Promise<number> => {
   const query = `SELECT COUNT(*) as count FROM ${DB_SCHEMA}.responses WHERE survey_id = $1`;
-  const result = await db.query(query, [surveyId]);
+  const result = await db.query(query, [survey_id]);
   return parseInt(result.rows[0].count);
 };
 
 // Получение базовой статистики по анкете
-export const getSurveyStats = async (surveyId: string): Promise<any> => {
+export const getSurveyStats = async (survey_id: string): Promise<any> => {
   const query = `
     SELECT 
       COUNT(*) as total_responses,
@@ -51,15 +56,15 @@ export const getSurveyStats = async (surveyId: string): Promise<any> => {
     FROM ${DB_SCHEMA}.responses 
     WHERE survey_id = $1
   `;
-  const result = await db.query(query, [surveyId]);
+  const result = await db.query(query, [survey_id]);
   return result.rows[0];
 };
 
 // Получение детальной статистики по каждому вопросу анкеты
-export const getDetailedStatsBySurveyId = async (surveyId: string, surveyStructure: Question[]): Promise<any> => {
+export const getDetailedStatsBySurveyId = async (survey_id: string, surveyStructure: Question[]): Promise<any> => {
   // Запрос для получения всех ответов для данной анкеты
   const query = `SELECT data FROM ${DB_SCHEMA}.responses WHERE survey_id = $1`;
-  const result = await db.query(query, [surveyId]);
+  const result = await db.query(query, [survey_id]);
   const responses = result.rows;
 
   if (responses.length === 0) {

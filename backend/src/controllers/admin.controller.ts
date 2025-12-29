@@ -14,14 +14,14 @@ import { logUserAction, logError } from '../utils/logger.utils';
 export const createNewUser = async (req: Request, res: Response) => {
   try {
     const { login, password, role } = req.body;
-    const createdBy = req.user!.sub;
+    const created_by = req.user!.sub;
 
     if (!login || !password || !role) {
       logUserAction('CREATE_USER_FAILED', req, { 
         reason: 'Missing required fields',
         login,
         role,
-        createdBy
+        created_by
       });
       return res.status(400).json({ error: 'Login, password and role are required' });
     }
@@ -30,7 +30,7 @@ export const createNewUser = async (req: Request, res: Response) => {
       logUserAction('CREATE_USER_FAILED', req, { 
         reason: 'Invalid password format',
         login,
-        createdBy
+        created_by
       });
       return res.status(400).json({
         error: 'Password must be ≥8 chars, contain A-Z, a-z, 0-9, and !@#$%^&*'
@@ -43,7 +43,7 @@ export const createNewUser = async (req: Request, res: Response) => {
         reason: 'Invalid role',
         login,
         role,
-        createdBy
+        created_by
       });
       return res.status(400).json({ error: 'Role must be "admin" or "superadmin"' });
     }
@@ -54,7 +54,7 @@ export const createNewUser = async (req: Request, res: Response) => {
         reason: 'Permission denied - only superadmin can create superadmin',
         login,
         role,
-        createdBy
+        created_by
       });
       return res.status(403).json({ error: 'Only superadmin can create another superadmin' });
     }
@@ -67,20 +67,20 @@ export const createNewUser = async (req: Request, res: Response) => {
       userId: user.id, 
       login: user.login, 
       role: user.role,
-      createdBy
+      created_by
     }, user.id, 'user');
 
     res.status(201).json({
       id: user.id,
       login: user.login,
       role: user.role,
-      createdAt: user.created_at
+      created_at: user.created_at
     });
   } catch (error) {
     logError('CREATE_USER', req, error as Error, { 
       login: req.body.login,
       role: req.body.role,
-      createdBy: req.user!.sub
+      created_by: req.user!.sub
     });
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -94,8 +94,8 @@ export const getUsers = async (req: Request, res: Response) => {
       id: user.id,
       login: user.login,
       role: user.role,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at
+      created_at: user.created_at,
+      updated_at: user.updated_at
     })));
   } catch (error) {
     console.error('Error getting users:', error);
@@ -116,8 +116,8 @@ export const getUser = async (req: Request, res: Response) => {
       id: user.id,
       login: user.login,
       role: user.role,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at
+      created_at: user.created_at,
+      updated_at: user.updated_at
     });
   } catch (error) {
     console.error('Error getting user:', error);
@@ -191,7 +191,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       id: updatedUser.id,
       login: updatedUser.login,
       role: updatedUser.role,
-      updatedAt: updatedUser.updated_at
+      updated_at: updatedUser.updated_at
     });
   } catch (error) {
     logError('UPDATE_USER', req, error as Error, { 

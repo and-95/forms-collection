@@ -16,7 +16,7 @@ import {
   getSurveyStats as getSurveyStatsModel,
   getDetailedStatsBySurveyId
 } from '../models/response.model';
-import { generateQRCode } from '../services/qr.service';
+import { generateQRCode} from '../services/qr.service';
 import { validateSurveyResponse } from '../utils/validation/survey.validation';
 import { Survey } from '../types/survey.types';
 import { generatePublicUrl } from '../utils/url.utils';
@@ -26,7 +26,7 @@ import { logUserAction, logError } from '../utils/logger.utils';
 
 export const createSurvey = async (req: Request, res: Response) => {
   try {
-    const { title, description, structure, expiresAt, isAnonymous } = req.body;
+    const { title, description, structure, expires_at, is_anonymous } = req.body;
     const userId = req.user!.sub;
 
     // Валидация структуры анкеты
@@ -36,8 +36,8 @@ export const createSurvey = async (req: Request, res: Response) => {
       title,
       description,
       structure,
-      expiresAt ? new Date(expiresAt) : undefined,
-      isAnonymous,
+      expires_at ? new Date(expires_at) : undefined,
+      is_anonymous,
       userId
     );
 
@@ -47,28 +47,28 @@ export const createSurvey = async (req: Request, res: Response) => {
 
     // Генерация QR-кода
     const publicUrl = generatePublicUrl(survey.id);
-    const qrCode = await generateQRCode(publicUrl);
+    const qr_code = await generateQRCode(publicUrl);
     
     // Обновление анкеты с QR-кодом
-    const updatedSurvey = await updateSurveyModel(survey.id, userId, { qr_code: qrCode });
+    const updatedSurvey = await updateSurveyModel(survey.id, userId, { qr_code: qr_code });
     
     if (!updatedSurvey) {
       throw new Error('Failed to update survey with QR code');
     }
 
     logUserAction('CREATE_SURVEY', req, { 
-      surveyId: survey.id, 
+      survey_id: survey.id, 
       title: survey.title,
-      isAnonymous: survey.is_anonymous
+      is_anonymous: survey.is_anonymous
     }, survey.id, 'survey');
 
     res.status(201).json({
       id: updatedSurvey.id,
       title: updatedSurvey.title,
       publicUrl,
-      qrCode,
-      expiresAt: updatedSurvey.expires_at,
-      isActive: updatedSurvey.is_active
+      qr_code,
+      expires_at: updatedSurvey.expires_at,
+      is_active: updatedSurvey.is_active
     });
   } catch (error) {
     logError('CREATE_SURVEY', req, error as Error, { 
@@ -93,8 +93,8 @@ export const getSurveys = async (req: Request, res: Response) => {
           id: survey.id,
           title: survey.title,
           description: survey.description,
-          isActive: survey.is_active,
-          expiresAt: survey.expires_at,
+          is_active: survey.is_active,
+          expires_at: survey.expires_at,
           createdAt: survey.created_at,
           updatedAt: survey.updated_at,
           responseCount
@@ -136,7 +136,7 @@ export const updateSurvey = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user!.sub;
-    const { title, description, structure, expiresAt, isAnonymous } = req.body;
+    const { title, description, structure, expires_at, is_anonymous } = req.body;
     
 
     const updates: Record<string, any> = {}; 
@@ -144,15 +144,15 @@ export const updateSurvey = async (req: Request, res: Response) => {
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
     if (structure !== undefined) updates.structure = JSON.stringify(structure); // ✅ строка
-    if (expiresAt !== undefined) updates.expires_at = expiresAt ? new Date(expiresAt) : null;
-    if (isAnonymous !== undefined) updates.is_anonymous = isAnonymous;
+    if (expires_at !== undefined) updates.expires_at = expires_at ? new Date(expires_at) : null;
+    if (is_anonymous !== undefined) updates.is_anonymous = is_anonymous;
     
     const updatedSurvey = await updateSurveyModel(id, userId, updates);
     
     if (!updatedSurvey) {
       logUserAction('UPDATE_SURVEY_FAILED', req, { 
         reason: 'Survey not found or access denied',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(404).json({ error: 'Survey not found or access denied' });
     }
@@ -160,19 +160,19 @@ export const updateSurvey = async (req: Request, res: Response) => {
     // Если структура изменилась — перегенерируем QR-код
     if (structure !== undefined) {
       const publicUrl = generatePublicUrl(updatedSurvey.id);
-      const qrCode = await generateQRCode(publicUrl);
-      await updateSurveyModel(updatedSurvey.id, userId, { qr_code: qrCode });
+      const qr_code = await generateQRCode(publicUrl);
+      await updateSurveyModel(updatedSurvey.id, userId, { qr_code: qr_code });
     }
     
     logUserAction('UPDATE_SURVEY', req, { 
-      surveyId: id,
-      updates: { title, description, structure: structure !== undefined, expiresAt, isAnonymous }
+      survey_id: id,
+      updates: { title, description, structure: structure !== undefined, expires_at, is_anonymous }
     }, id, 'survey');
     
     res.status(200).json(updatedSurvey);
   } catch (error) {
     logError('UPDATE_SURVEY', req, error as Error, { 
-      surveyId: req.params.id,
+      sursurvey_idveyId: req.params.id,
       userId: req.user!.sub
     });
     res.status(500).json({ error: 'Internal server error' });
@@ -189,17 +189,17 @@ export const deleteSurvey = async (req: Request, res: Response) => {
     if (!success) {
       logUserAction('DELETE_SURVEY_FAILED', req, { 
         reason: 'Survey not found or access denied',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(404).json({ error: 'Survey not found or access denied' });
     }
     
-    logUserAction('DELETE_SURVEY', req, { surveyId: id }, id, 'survey');
+    logUserAction('DELETE_SURVEY', req, { survey_id: id }, id, 'survey');
     
     res.status(200).json({ message: 'Survey deleted successfully' });
   } catch (error) {
     logError('DELETE_SURVEY', req, error as Error, { 
-      surveyId: req.params.id,
+      survey_id: req.params.id,
       userId: req.user!.sub
     });
     res.status(500).json({ error: 'Internal server error' });
@@ -217,7 +217,7 @@ export const toggleSurveyActive = async (req: Request, res: Response) => {
     if (!survey) {
       logUserAction('TOGGLE_SURVEY_ACTIVE_FAILED', req, { 
         reason: 'Survey not found',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(404).json({ error: 'Survey not found' });
     }
@@ -225,34 +225,34 @@ export const toggleSurveyActive = async (req: Request, res: Response) => {
     if (survey.created_by !== userId && req.user!.role !== 'superadmin') {
       logUserAction('TOGGLE_SURVEY_ACTIVE_FAILED', req, { 
         reason: 'Access denied',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    const isActive = req.body.active !== undefined ? req.body.active : !survey.is_active;
-    const updatedSurvey = await toggleSurveyActiveModel(id, userId, isActive);
+    const is_active = req.body.active !== undefined ? req.body.active : !survey.is_active;
+    const updatedSurvey = await toggleSurveyActiveModel(id, userId, is_active);
     
     if (!updatedSurvey) {
       logUserAction('TOGGLE_SURVEY_ACTIVE_FAILED', req, { 
         reason: 'Failed to update survey status',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(400).json({ error: 'Failed to update survey status' });
     }
     
-    logUserAction(isActive ? 'ACTIVATE_SURVEY' : 'DEACTIVATE_SURVEY', req, { 
-      surveyId: id,
-      isActive: updatedSurvey.is_active
+    logUserAction(is_active ? 'ACTIVATE_SURVEY' : 'DEACTIVATE_SURVEY', req, { 
+      survey_id: id,
+      is_active: updatedSurvey.is_active
     }, id, 'survey');
     
     res.status(200).json({
       id: updatedSurvey.id,
-      isActive: updatedSurvey.is_active
+      is_active: updatedSurvey.is_active
     });
   } catch (error) {
     logError('TOGGLE_SURVEY_ACTIVE', req, error as Error, { 
-      surveyId: req.params.id,
+      survey_id: req.params.id,
       userId: req.user!.sub
     });
     res.status(500).json({ error: 'Internal server error' });
@@ -283,10 +283,10 @@ export const getPublicSurvey = async (req: Request, res: Response) => {
       title: survey.title,
       description: survey.description,
       structure: survey.structure,
-      isAnonymous: survey.is_anonymous,
-      expiresAt: survey.expires_at,
-      isActive: survey.is_active,
-      qrCode: survey.qr_code, // Включаем QR-код
+      is_anonymous: survey.is_anonymous,
+      expires_at: survey.expires_at,
+      is_active: survey.is_active,
+      qr_code: survey.qr_code, // Включаем QR-код
       publicUrl: generatePublicUrl(survey.id) // Включаем публичный URL
     });
   } catch (error) {
@@ -308,7 +308,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
     if (!survey) {
       logUserAction('SUBMIT_SURVEY_FAILED', req, { 
         reason: 'Survey not found',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(404).json({ error: 'Survey not found' });
     }
@@ -316,7 +316,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
     if (!survey.is_active) {
       logUserAction('SUBMIT_SURVEY_FAILED', req, { 
         reason: 'Survey is not active',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(400).json({ error: 'Survey is not active' });
     }
@@ -324,7 +324,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
     if (survey.expires_at && new Date() > new Date(survey.expires_at)) {
       logUserAction('SUBMIT_SURVEY_FAILED', req, { 
         reason: 'Survey has expired',
-        surveyId: id 
+        survey_id: id 
       }, id, 'survey');
       return res.status(400).json({ error: 'Survey has expired' });
     }
@@ -335,7 +335,7 @@ export const submitSurvey = async (req: Request, res: Response) => {
     if (!validation.success) {
       logUserAction('SUBMIT_SURVEY_FAILED', req, { 
         reason: 'Invalid response data',
-        surveyId: id,
+        survey_id: id,
         validationErrors: validation.errors
       }, id, 'survey');
       return res.status(400).json({ error: 'Invalid response data', details: validation.errors });
@@ -351,16 +351,16 @@ export const submitSurvey = async (req: Request, res: Response) => {
     const response = await createResponse(id, data, ip);
     
     logUserAction('SUBMIT_SURVEY', req, { 
-      surveyId: id,
+      survey_id: id,
       responseId: response.id,
-      isAnonymous: survey.is_anonymous,
+      is_anonymous: survey.is_anonymous,
       ip: survey.is_anonymous ? 'anonymous' : ip
     }, id, 'survey');
     
     res.status(201).json({ message: 'Спасибо за участие!' });
   } catch (error) {
     logError('SUBMIT_SURVEY', req, error as Error, { 
-      surveyId: req.params.id
+      survey_id: req.params.id
     });
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -392,9 +392,9 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
     const responses = await getResponsesBySurveyId(id, limit, offset);
     const totalCount = await getResponseCountBySurveyId(id);
     
-    res.status(200).json({
-      surveyId: id,
-      responses,
+res.status(200).json({
+  survey_id: id,
+  responses: responses, // ← теперь каждый response.data — объект
       pagination: {
         page,
         limit,
@@ -431,7 +431,7 @@ export const getSurveyStats = async (req: Request, res: Response) => {
     const detailedStats = await getDetailedStatsBySurveyId(id, survey.structure);
     
     res.status(200).json({
-      surveyId: id,
+      survey_id: id,
       basicStats: stats,
       detailedStats
     });

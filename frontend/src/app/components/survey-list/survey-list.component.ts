@@ -42,10 +42,10 @@ import { MatIconModule } from '@angular/material/icon';
           <mat-card-content>
             <div class="survey-details">
               <div class="status">
-                <mat-icon [class.active]="survey.isActive" [class.inactive]="!survey.isActive">
-                  {{ survey.isActive ? 'check_circle' : 'cancel' }}
+                <mat-icon [class.active]="survey.is_active" [class.inactive]="!survey.is_active">
+                  {{ survey.is_active ? 'check_circle' : 'cancel' }}
                 </mat-icon>
-                <span>{{ survey.isActive ? 'Активна' : 'Неактивна' }}</span>
+                <span>{{ survey.is_active ? 'Активна' : 'Неактивна' }}</span>
               </div>
               
               <div class="responses-count">
@@ -53,9 +53,9 @@ import { MatIconModule } from '@angular/material/icon';
                 <span>{{ survey.responseCount || 0 }} ответов</span>
               </div>
               
-              <div class="expires-at" *ngIf="survey.expiresAt">
+              <div class="expires-at" *ngIf="survey.expires_at">
                 <mat-icon>schedule</mat-icon>
-                <span>{{ survey.expiresAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                <span>{{ survey.expires_at | date:'dd.MM.yyyy HH:mm' }}</span>
               </div>
             </div>
           </mat-card-content>
@@ -186,10 +186,7 @@ export class SurveyListComponent implements OnInit {
     this.loading = true;
     this.surveyService.getSurveys().subscribe({
       next: (surveys) => {
-        this.surveys = surveys.map(survey => ({
-          ...survey,
-          responseCount: this.calculateResponseCount(survey)
-        }));
+this.surveys = surveys.map(s => ({ ...s, responseCount: s.responseCount ?? 0 }));
         this.loading = false;
       },
       error: (error) => {

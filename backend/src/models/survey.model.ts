@@ -10,9 +10,9 @@ export const createSurvey = async (
   title: string,
   description: string | undefined,
   structure: any,
-  expiresAt: Date | undefined,
-  isAnonymous: boolean,
-  createdBy: string
+  expires_at: Date | undefined,
+  is_anonymous: boolean,
+  created_by: string
 ): Promise<Survey> => {
   const query = `
     INSERT INTO ${DB_SCHEMA}.surveys (
@@ -26,9 +26,9 @@ export const createSurvey = async (
     title,
     description ?? null,               // ← исправлено: undefined → null
     JSON.stringify(structure),
-    expiresAt ?? null,                 // ← исправлено: undefined → null
-    isAnonymous,
-    createdBy
+    expires_at ?? null,                 // ← исправлено: undefined → null
+    is_anonymous,
+    created_by
   ];
 
   const result = await db.query(query, values);
@@ -158,7 +158,7 @@ export const deleteSurvey = async (id: string, userId: string): Promise<boolean>
 export const toggleSurveyActive = async (
   id: string,
   userId: string,
-  isActive: boolean
+  is_active: boolean
 ): Promise<Survey | null> => {
   const query = `
     UPDATE ${DB_SCHEMA}.surveys
@@ -166,6 +166,26 @@ export const toggleSurveyActive = async (
     WHERE id = $2::uuid AND created_by = $3::uuid
     RETURNING *
   `;
-  const result = await db.query(query, [isActive, id, userId]);
+  const result = await db.query(query, [is_active, id, userId]);
   return result.rows.length > 0 ? result.rows[0] as Survey : null;
 };
+
+export interface SurveyResponsesResponse {
+  surveyId: string;
+  responses: SurveyResponseRaw[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// "сырой" ответ от бэкенда
+export interface SurveyResponseRaw {
+  id: string;
+  survey_id: string;
+  data: Record<string, any>;
+  ip?: string | null;
+  submitted_at: string; // ← snake_case
+}

@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@types/qrcode": "^1.5.6"
+    "@types/qrCode": "^1.5.6"
   },
   "name": "workspace",
   "version": "1.0.0",

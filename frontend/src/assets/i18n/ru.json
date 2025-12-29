@@ -64,15 +64,15 @@
         "duplicate": "Дублировать",
         "responses": "Ответы",
         "stats": "Статистика",
-        "qrCode": "QR-код",
+        "qr_code": "QR-код",
         "share": "Поделиться"
       },
       "columns": {
         "title": "Название",
         "status": "Статус",
-        "expiresAt": "Срок действия",
+        "expires_at": "Срок действия",
         "responsesCount": "Ответов",
-        "createdAt": "Создана",
+        "created_at": "Создана",
         "actions": "Действия"
       }
     },
@@ -84,11 +84,11 @@
       "form": {
         "titleLabel": "Название анкеты",
         "descriptionLabel": "Описание анкеты",
-        "expiresAtLabel": "Срок действия",
-        "expiresAtPlaceholder": "Выберите дату и время окончания",
-        "expiresAtHelp": "Оставьте пустым для бессрочной анкеты",
-        "isAnonymousLabel": "Анонимный опрос",
-        "isAnonymousHelp": "Не сохранять IP-адреса респондентов",
+        "expires_atLabel": "Срок действия",
+        "expires_atPlaceholder": "Выберите дату и время окончания",
+        "expires_atHelp": "Оставьте пустым для бессрочной анкеты",
+        "is_anonymousLabel": "Анонимный опрос",
+        "is_anonymousHelp": "Не сохранять IP-адреса респондентов",
         "saveButton": "Сохранить анкету",
         "saveAndActivateButton": "Сохранить и активировать",
         "previewButton": "Предпросмотр",
@@ -149,7 +149,7 @@
       "to": "До",
       "columns": {
         "responseId": "ID ответа",
-        "submittedAt": "Дата и время",
+        "submitted_at": "Дата и время",
         "ip": "IP-адрес",
         "actions": "Действия"
       },

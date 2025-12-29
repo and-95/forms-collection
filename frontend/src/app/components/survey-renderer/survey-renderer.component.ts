@@ -40,9 +40,9 @@ import { MatSliderModule } from '@angular/material/slider';
         <h1>{{ survey?.title }}</h1>
         <p>{{ survey?.description }}</p>
         <!-- Отображение QR-кода -->
-        <div class="qr-container" *ngIf="survey?.qrCode">
+        <div class="qr-container" *ngIf="survey?.qr_code">
           <div class="qr-code">
-            <img [src]="survey?.qrCode" alt="QR Code" />
+            <img [src]="survey?.qr_code" alt="QR Code" />
             <p>Сканируйте QR-код для доступа к анкете</p>
           </div>
         </div>
@@ -335,11 +335,11 @@ private loadSurvey(id: string): void {
       this.survey = { ...survey };
 
       // 🔑 Исправляем QR-код: добавляем data-URL префикс
-      if (this.survey.qrCode && !this.survey.qrCode.startsWith('data:')) {
-        this.survey.qrCode = `data:image/png;base64,${this.survey.qrCode}`;
+      if (this.survey.qr_code && !this.survey.qr_code.startsWith('data:')) {
+        this.survey.qr_code = `data:image/png;base64,${this.survey.qr_code}`;
       }
 
-      if (survey.isActive) {
+      if (survey.is_active) {
         this.buildForm(survey.structure);
       } else {
         this.router.navigate(['/']);

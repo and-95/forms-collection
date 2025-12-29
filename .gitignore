@@ -25,10 +25,17 @@ venv/
 # Compiled/Build artifacts
 # Build directories
 # Build artifacts
+# Build outputs
 dist/
 build/
+*.js
 *.js.map
 *.tsbuildinfo
+*.min.js
+*.css
+*.css.map
+*.min.css
+
 # Logs
 # Logs and temp files
 target/
@@ -52,6 +59,7 @@ target/
 *.log
 
 @@ -26,85 +15,35 @@ build/
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
@@ -62,11 +70,11 @@ target/
 
 # Temp files
 *.tmp
+
 # OS
 .DS_Store
 Thumbs.db
-
-# Coverage
+@@ -70,146 +35,40 @@ Thumbs.db
 coverage/
 htmlcov/
 *.coverage
@@ -113,6 +121,7 @@ target/
 .nyc_output/
 coverage/
 htmlcov/
+.tox/
 .coverage
 
 # MyPy
@@ -122,7 +131,9 @@ __pycache__/
 .mypy_cache/
 
 # PyTest
+.nox/
 .pytest_cache/
+.mypy_cache/
 
 # OS
 # Node.js
@@ -201,6 +212,13 @@ Thumbs.db
 .gradle/
 target/
 # Logs
+node_modules/
+jspm_packages/
+*.tsbuildinfo
+.nyc_output
+coverage/
+.nyc_output/
+istanbul/
 *.log
 
 # Other common ignores
@@ -212,4 +230,10 @@ target/
 .env
 .env.local
 .env.*
+```
+# Angular
+.angular/
+dist/
+tmp/
+temp/
 ```

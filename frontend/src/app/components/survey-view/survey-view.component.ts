@@ -146,6 +146,16 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
               <mat-icon>edit</mat-icon>
               Редактировать
             </button>
+            
+            <button 
+              mat-raised-button 
+              color="warn"
+              (click)="deleteSurvey(survey.id, survey.title)"
+              matTooltip="Удалить анкету"
+              *ngIf="canEdit()">
+              <mat-icon>delete</mat-icon>
+              Удалить
+            </button>
           </mat-card-actions>
         </mat-card>
       </div>
@@ -383,7 +393,6 @@ private fallbackCopyTextToClipboard(text: string, successMsg: string, errorMsg: 
   } finally {
     document.body.removeChild(textarea);
   }
-}
 
   canEdit(): boolean {
     if (!this.survey || !this.authService.currentUser()) {
@@ -394,5 +403,20 @@ private fallbackCopyTextToClipboard(text: string, successMsg: string, errorMsg: 
     // Администратор может редактировать свои анкеты, суперадмин может редактировать любые
     return user?.role === 'superadmin' || 
            (user?.role === 'admin' && this.survey.created_by === user.id);
+  }
+
+  deleteSurvey(id: string, title: string): void {
+    if (confirm(`Вы уверены, что хотите удалить анкету "${title}"? Это действие нельзя отменить.`)) {
+      this.surveyService.deleteSurvey(id).subscribe({
+        next: () => {
+          this.snackBar.open('Анкета успешно удалена', 'Закрыть', { duration: 3000 });
+          this.router.navigate(['/surveys']);
+        },
+        error: (error) => {
+          console.error('Ошибка при удалении анкеты', error);
+          this.snackBar.open('Ошибка при удалении анкеты', 'Закрыть', { duration: 3000 });
+        }
+      });
+    }
   }
 }

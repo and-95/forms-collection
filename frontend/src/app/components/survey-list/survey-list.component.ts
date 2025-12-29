@@ -68,6 +68,13 @@ import { MatIconModule } from '@angular/material/icon';
               (click)="viewSurvey(survey.id)">
               Посмотреть
             </button>
+            <button 
+              mat-button 
+              color="warn"
+              (click)="$event.stopPropagation(); deleteSurvey(survey.id, survey.title)"
+              *ngIf="authService.hasAnyRole(['admin', 'superadmin'])">
+              Удалить
+            </button>
           </mat-card-actions>
         </mat-card>
       </div>
@@ -222,5 +229,19 @@ this.surveys = surveys.map(s => ({ ...s, responseCount: s.responseCount ?? 0 }))
 
   trackBySurveyId(index: number, survey: Survey): string {
     return survey.id;
+  }
+
+  deleteSurvey(id: string, title: string): void {
+    if (confirm(`Вы уверены, что хотите удалить анкету "${title}"? Это действие нельзя отменить.`)) {
+      this.surveyService.deleteSurvey(id).subscribe({
+        next: () => {
+          this.surveys = this.surveys.filter(survey => survey.id !== id);
+          console.log('Анкета успешно удалена');
+        },
+        error: (error) => {
+          console.error('Ошибка при удалении анкеты', error);
+        }
+      });
+    }
   }
 }

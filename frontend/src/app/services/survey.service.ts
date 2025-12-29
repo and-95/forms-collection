@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators'; // ← добавь вверху файл�
   providedIn: 'root'
 })
 export class SurveyService {
-  private readonly API_URL = 'http://172.16.153.98:3000/api/v1';
+  private readonly API_URL = 'http://localhost:3000/api/v1';
 
   constructor(private http: HttpClient) { }
 

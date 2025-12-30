@@ -126,6 +126,7 @@ coverage/
 htmlcov/
 .tox/
 .coverage
+*.coverage
 
 # MyPy
 # Python specific
@@ -200,6 +201,7 @@ Thumbs.db
 # Windows
 
 # OS generated files
+*~
 .DS_Store
 Thumbs.db
 ```
@@ -225,6 +227,9 @@ coverage/
 .nyc_output/
 istanbul/
 *.log
+coverage.xml
+*.gcov
+*.lcov
 
 # Other common ignores
 *.swp
@@ -241,4 +246,13 @@ istanbul/
 dist/
 tmp/
 temp/
+```
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```

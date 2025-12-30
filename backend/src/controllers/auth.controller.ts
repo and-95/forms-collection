@@ -60,9 +60,15 @@ export const login = async (req: Request, res: Response) => {
   });
 };
 
-export const refresh = (req: Request, res: Response) => {
+export const refresh = async (req: Request, res: Response) => {
   // req.user уже заполнен в refreshGuard
   const payload: JWTPayload = { sub: req.user!.sub, role: req.user!.role };
+  
+  // Получаем актуальную информацию о пользователе из базы данных
+  const user = await findUserById(req.user!.sub);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
 
   const accessToken = signAccessToken(payload);
 
@@ -73,7 +79,13 @@ export const refresh = (req: Request, res: Response) => {
     maxAge: 15 * 60 * 1000,
   });
 
-  return res.status(200).json({ message: 'Token refreshed' });
+  return res.status(200).json({
+    user: {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+    },
+  });
 };
 
 export const changePassword = async (req: Request, res: Response) => {

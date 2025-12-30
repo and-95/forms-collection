@@ -87,6 +87,11 @@ private checkAuthStatus(): void {
   refreshToken(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/refresh`, {})
       .pipe(
+        tap(response => {
+          // Обновляем информацию о пользователе при обновлении токена
+          this.currentUser.set(response.user);
+          this.isAuthenticated.set(true);
+        }),
         catchError(error => {
           console.error('Refresh token error:', error);
           this.handle401Error(error);

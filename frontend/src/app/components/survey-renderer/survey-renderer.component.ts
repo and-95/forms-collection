@@ -50,7 +50,10 @@ import { MatSliderModule } from '@angular/material/slider';
           *ngFor="let question of survey?.structure; let i = index; trackBy: trackByQuestionId">
           <mat-card class="question-card">
             <mat-card-header>
-              <mat-card-title>{{ question.label }}</mat-card-title>
+<mat-card-title>
+  {{ question.label }}
+  <span *ngIf="question.required" class="required-star">(обязательно)</span>
+</mat-card-title>
               <mat-card-subtitle *ngIf="question.description">{{ question.description }}</mat-card-subtitle>
             </mat-card-header>
             
@@ -187,6 +190,12 @@ import { MatSliderModule } from '@angular/material/slider';
       padding: 20px;
       max-width: 800px;
       margin: 0 auto;
+    }
+
+    .required-star {
+      color: red;
+      font-size: 18px;
+      margin-left: 2px;
     }
     
     .survey-header {

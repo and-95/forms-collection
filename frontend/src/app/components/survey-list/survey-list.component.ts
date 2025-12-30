@@ -70,9 +70,9 @@ import { MatIconModule } from '@angular/material/icon';
             </button>
             <button 
               mat-button 
-              color="warn"
               (click)="$event.stopPropagation(); deleteSurvey(survey.id, survey.title)"
-              *ngIf="authService.hasAnyRole(['admin', 'superadmin'])">
+              *ngIf="authService.hasAnyRole(['admin', 'superadmin'])"
+              class="red-button">
               Удалить
             </button>
           </mat-card-actions>
@@ -103,6 +103,20 @@ import { MatIconModule } from '@angular/material/icon';
       max-width: 1200px;
       margin: 0 auto;
     }
+
+    .red-button {
+  background-color: #ee3f3fff !important; /* зелёный Material */
+  color: white !important;
+}
+
+.red-button:hover {
+  background-color: #ee3f3fff !important;
+}
+
+/* Для ripple-эффекта (чтобы он тоже был зелёным) */
+.red-button .mat-ripple-element {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
     
     .header {
       display: flex;

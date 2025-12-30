@@ -252,7 +252,7 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
               </div>
             </div>
             <div class="color-button">
-             <button matButton="filled"  (click)="addQuestion()">{{ i18n.t('survey.builder.questions.addQuestion') }}</button>
+             <button matButton="filled" color="primary"  (click)="addQuestion()" class="green-button">{{ i18n.t('survey.builder.questions.addQuestion') }}</button>
             </div>
           </div>
         </form>
@@ -266,12 +266,26 @@ import { Subscription, first } from 'rxjs'; // ✅ добавлен first
       max-width: 1200px;
       margin: 0 auto;
     }
+      
 
 .color-button {
   display: flex;
   justify-content: center; /* ← центрирует содержимое по горизонтали */
   margin-top: 20px;
   /* остальное по желанию */
+}
+  .green-button {
+  background-color: #4caf50 !important; /* зелёный Material */
+  color: white !important;
+}
+
+.green-button:hover {
+  background-color: #45a049 !important;
+}
+
+/* Для ripple-эффекта (чтобы он тоже был зелёным) */
+.green-button .mat-ripple-element {
+  background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 

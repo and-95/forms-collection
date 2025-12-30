@@ -165,7 +165,7 @@ import { AuthService } from '../../services/auth.service';
               color="warn"
               (click)="deleteSurvey(survey.id, survey.title)"
               matTooltip="Удалить анкету"
-              *ngIf="canEdit()">
+              *ngIf="canEdit()" class="red-button">
               <mat-icon>delete</mat-icon>
               Удалить
             </button>
@@ -181,6 +181,20 @@ import { AuthService } from '../../services/auth.service';
       margin: 0 auto;
     }
     
+        .red-button {
+  background-color: #ee3f3fff !important; /* зелёный Material */
+  color: white !important;
+}
+
+.red-button:hover {
+  background-color: #ee3f3fff !important;
+}
+
+/* Для ripple-эффекта (чтобы он тоже был зелёным) */
+.red-button .mat-ripple-element {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+  
     .header {
       display: flex;
       align-items: center;

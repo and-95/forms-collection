@@ -1,0 +1,13 @@
+.red-button {
+  background-color: #ee3f3fff !important; /* зелёный Material */
+  color: white !important;
+}
+
+.red-button:hover {
+  background-color: #ee3f3fff !important;
+}
+
+/* Для ripple-эффекта (чтобы он тоже был зелёным) */
+.red-button .mat-ripple-element {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
